@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Dentists & Treatments - Sunrise Dental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand">Sunrise Dental</div>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.html">Dashboard / Home</a></li>
+        <li><a href="register_appointment.html">Register Appointment</a></li>
+        <li><a href="manage_appointments.html">Search / Update</a></li>
+        <li><a href="billing.html">Billing &amp; Receipt</a></li>
+        <li><a href="manage_dentists_treatments.html" class="active">Manage Dentists</a></li>
+        <li><a href="reports.html">Reports &amp; Analytics</a></li>
+        <li><a href="notifications.html">Notifications</a></li>
+        <li><a href="help.html">Help / Instructions</a></li>
+    </ul>
+    <a href="index.html" class="logout-btn">Log Out</a>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <div>
+            <h1>Manage Dentists &amp; Treatments</h1>
+            <p>Admin only - keep the dentist list and treatment fees up to date.</p>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <h3>Dentists</h3>
+        <table id="dentistTable">
+            <thead><tr><th>Name</th><th>Specialization</th><th></th></tr></thead>
+            <tbody>
+            <tr><td>Dr. Silva</td><td>General Dentistry</td><td><button class="btn-secondary">Edit</button></td></tr>
+            <tr><td>Dr. Perera</td><td>Orthodontics</td><td><button class="btn-secondary">Edit</button></td></tr>
+            </tbody>
+        </table>
+        <div class="form-grid" style="margin-top:20px;">
+            <div class="form-group"><label>Dentist Name</label><input type="text" id="newDentistName"></div>
+            <div class="form-group"><label>Specialization</label><input type="text" id="newDentistSpec"></div>
+        </div>
+        <button class="btn-primary" onclick="addDentist()">Add Dentist</button>
+    </div>
+
+    <div class="card-box">
+        <h3>Treatments &amp; Fees</h3>
+        <table id="treatmentTable">
+            <thead><tr><th>Treatment</th><th>Consultation Fee</th><th></th></tr></thead>
+            <tbody>
+            <tr><td>Consultation</td><td>Rs. 1,000</td><td><button class="btn-secondary">Edit</button></td></tr>
+            <tr><td>Tooth Filling</td><td>Rs. 3,500</td><td><button class="btn-secondary">Edit</button></td></tr>
+            <tr><td>Root Canal</td><td>Rs. 12,000</td><td><button class="btn-secondary">Edit</button></td></tr>
+            <tr><td>Teeth Cleaning</td><td>Rs. 2,500</td><td><button class="btn-secondary">Edit</button></td></tr>
+            </tbody>
+        </table>
+        <div class="form-grid" style="margin-top:20px;">
+            <div class="form-group"><label>Treatment Name</label><input type="text" id="newTreatmentName"></div>
+            <div class="form-group"><label>Consultation Fee (Rs.)</label><input type="number" id="newTreatmentFee"></div>
+        </div>
+        <button class="btn-primary" onclick="addTreatment()">Add Treatment</button>
+    </div>
+</div>
+
+<script>
+    // Table rows above are placeholder/seed data matching schema.sql.
+    // Once DentistController + TreatmentController exist, load real data with:
+    // fetch('http://localhost:8080/dentists') and fetch('http://localhost:8080/treatments')
+
+    function addDentist() {
+        const name = document.getElementById('newDentistName').value;
+        const spec = document.getElementById('newDentistSpec').value;
+        if (!name) return;
+
+        fetch('http://localhost:8080/dentists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, specialization: spec })
+        }).then(() => location.reload())
+          .catch(() => alert('Backend endpoint not built yet.'));
+    }
+
+    function addTreatment() {
+        const name = document.getElementById('newTreatmentName').value;
+        const fee = document.getElementById('newTreatmentFee').value;
+        if (!name || !fee) return;
+
+        fetch('http://localhost:8080/treatments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ treatmentName: name, consultationFee: fee })
+        }).then(() => location.reload())
+          .catch(() => alert('Backend endpoint not built yet.'));
+    }
+</script>
+</body>
+</html>
