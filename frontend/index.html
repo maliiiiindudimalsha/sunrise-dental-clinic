@@ -43,7 +43,8 @@
             })
             .then(res => res.json())
             .then(data => {
-                alert(data.message);
+                alert("Login Successful!");
+window.location.href = 'dashboard.html';
             })
             .catch(err => console.error('Error:', err));
         });
