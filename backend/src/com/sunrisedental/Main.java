@@ -1,25 +1,21 @@
 package com.sunrisedental;
 
 import com.sun.net.httpserver.HttpServer;
-import java.net.InetSocketAddress;
+import com.sunrisedental.controller.LoginController;
+
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.InetSocketAddress;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        int port = 8080;
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        server.createContext("/api/test", exchange -> {
-            String response = "{\"message\": \"Server is working!\"}";
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, response.getBytes().length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        });
+        // 404 දෝෂය නිවැරදි කරන ප්‍රධාන පේළිය (Login endpoint එක සම්බන්ධ කිරීම)
+        server.createContext("/login", new LoginController());
 
         server.setExecutor(null);
         server.start();
-        System.out.println("Server started on http://localhost:8080");
+        System.out.println("Server started on port " + port);
     }
 }
