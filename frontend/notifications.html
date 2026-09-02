@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Sunrise Dental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand">Sunrise Dental</div>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.html">Dashboard / Home</a></li>
+        <li><a href="register_appointment.html">Register Appointment</a></li>
+        <li><a href="manage_appointments.html">Search / Update</a></li>
+        <li><a href="billing.html">Billing &amp; Receipt</a></li>
+        <li><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
+        <li><a href="reports.html">Reports &amp; Analytics</a></li>
+        <li><a href="notifications.html" class="active">Notifications</a></li>
+        <li><a href="help.html">Help / Instructions</a></li>
+    </ul>
+    <a href="index.html" class="logout-btn">Log Out</a>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <div>
+            <h1>Notifications</h1>
+            <p>Simulated email/SMS alerts sent to patients for appointment reminders.</p>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <h3>Send a Notification</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Appointment No</label>
+                <input type="text" id="notifyAppointmentNo" placeholder="e.g. APT00001">
+            </div>
+            <div class="form-group">
+                <label>Channel</label>
+                <select id="notifyChannel">
+                    <option value="SMS">SMS</option>
+                    <option value="EMAIL">Email</option>
+                </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Message</label>
+                <input type="text" id="notifyMessage" placeholder="e.g. Your appointment is confirmed for tomorrow at 9 AM">
+            </div>
+        </div>
+        <button class="btn-primary" onclick="sendNotification()">Send Notification</button>
+    </div>
+
+    <div class="card-box">
+        <h3>Notification Log</h3>
+        <table>
+            <thead><tr><th>Appointment No</th><th>Channel</th><th>Message</th><th>Sent At</th></tr></thead>
+            <tbody id="notificationRows">
+            <tr><td colspan="4" class="empty-state">No notifications sent yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // NotificationController will expose POST /notifications (to send + log one)
+    // and GET /notifications (to list the log below). This simulates real
+    // email/SMS sending by writing a row to the notifications table.
+
+    function sendNotification() {
+        const appointmentNo = document.getElementById('notifyAppointmentNo').value;
+        const channel = document.getElementById('notifyChannel').value;
+        const message = document.getElementById('notifyMessage').value;
+        if (!appointmentNo || !message) return;
+
+        fetch('http://localhost:8080/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appointmentNo, channel, message })
+        })
+        .then(() => loadNotifications())
+        .catch(() => alert('Backend endpoint not built yet.'));
+    }
+
+    function loadNotifications() {
+        fetch('http://localhost:8080/notifications')
+            .then(res => res.json())
+            .then(data => {
+                const rows = (data || []).map(n => `
+                    <tr>
+                        <td>${n.appointmentNo}</td><td>${n.channel}</td>
+                        <td>${n.message}</td><td>${n.sentAt}</td>
+                    </tr>`).join('');
+                document.getElementById('notificationRows').innerHTML = rows || '<tr><td colspan="4" class="empty-state">No notifications sent yet.</td></tr>';
+            })
+            .catch(() => {});
+    }
+</script>
+</body>
+</html>
