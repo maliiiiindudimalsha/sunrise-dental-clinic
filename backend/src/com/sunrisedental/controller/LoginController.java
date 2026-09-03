@@ -2,8 +2,9 @@ package com.sunrisedental.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.sunrisedental.service.UserService;
 import com.sunrisedental.model.User;
+import com.sunrisedental.service.UserService;
+import com.sunrisedental.util.SessionManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +17,13 @@ public class LoginController implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, X-Auth-Token");
         exchange.getResponseHeaders().add("Content-Type", "application/json");
+
+        if ("OPTIONS".equals(exchange.getRequestMethod())) {
+            exchange.sendResponseHeaders(204, -1);
+            return;
+        }
 
         if (!"POST".equals(exchange.getRequestMethod())) {
             sendResponse(exchange, 405, "{\"status\":\"error\",\"message\":\"Method not allowed\"}");
@@ -30,7 +37,10 @@ public class LoginController implements HttpHandler {
         User user = userService.login(username, password);
 
         if (user != null) {
-            String response = "{\"status\":\"success\",\"role\":\"" + user.getRole() + "\",\"username\":\"" + user.getUsername() + "\"}";
+            String token = SessionManager.createSession(user.getUsername(), user.getRole());
+            String response = "{\"status\":\"success\",\"token\":\"" + token
+                    + "\",\"role\":\"" + user.getRole()
+                    + "\",\"username\":\"" + user.getUsername() + "\"}";
             sendResponse(exchange, 200, response);
         } else {
             sendResponse(exchange, 401, "{\"status\":\"error\",\"message\":\"Invalid username or password\"}");

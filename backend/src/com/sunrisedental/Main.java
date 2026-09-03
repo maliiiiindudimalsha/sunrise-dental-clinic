@@ -4,7 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-// සියලුම Controllers Import කිරීම
+
 import com.sunrisedental.controller.LoginController;
 import com.sunrisedental.controller.AppointmentController;
 import com.sunrisedental.controller.BillingController;
@@ -18,7 +18,7 @@ public class Main {
         int port = 8080;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Frontend සහ Backend සම්බන්ධ කරන End-points ලියාපදිංචි කිරීම
+
         server.createContext("/login", new LoginController());
         server.createContext("/appointments", new AppointmentController());
         server.createContext("/bills", new BillingController());
