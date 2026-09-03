@@ -27,7 +27,14 @@
 
 </head>
 
+<script>
+    const staffMenuItem = document.getElementById('staffMenuItem');
 
+    if (staffMenuItem &&
+        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
+        staffMenuItem.style.display = 'none';
+    }
+</script>
 <body>
 
 
@@ -71,6 +78,9 @@
             <a href="manage_dentists_treatments.html">
                 Manage Dentists
             </a>
+        </li>
+        <li id="staffMenuItem">
+            <a href="manage_staff.html">Manage Staff</a>
         </li>
 
         <li>

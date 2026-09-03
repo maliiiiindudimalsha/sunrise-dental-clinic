@@ -12,7 +12,14 @@
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
 </head>
+<script>
+    const staffMenuItem = document.getElementById('staffMenuItem');
 
+    if (staffMenuItem &&
+        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
+        staffMenuItem.style.display = 'none';
+    }
+</script>
 <body>
 
 <div class="sidebar">
@@ -25,6 +32,9 @@
         <li><a href="manage_appointments.html">Search / Update</a></li>
         <li><a href="billing.html">Billing &amp; Receipt</a></li>
         <li><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
+        <li id="staffMenuItem">
+            <a href="manage_staff.html">Manage Staff</a>
+        </li>
         <li><a href="reports.html">Reports &amp; Analytics</a></li>
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html" class="active">Help / Instructions</a></li>
