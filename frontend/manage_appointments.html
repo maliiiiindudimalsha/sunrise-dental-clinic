@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -20,15 +21,22 @@
             rel="stylesheet"
             href="css/style.css"
     >
+
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+
 </head>
 
+
 <body>
+
 
 <div class="sidebar">
 
     <div class="brand">
         Sunrise Dental
     </div>
+
 
     <ul class="sidebar-menu">
 
@@ -85,6 +93,27 @@
 
     </ul>
 
+
+    <div class="theme-toggle">
+
+        <span>Light</span>
+
+        <label class="switch">
+
+            <input
+                    type="checkbox"
+                    id="themeSwitch"
+            >
+
+            <span class="slider"></span>
+
+        </label>
+
+        <span>Dark</span>
+
+    </div>
+
+
     <a
             href="#"
             class="logout-btn"
@@ -107,7 +136,7 @@
             </h1>
 
             <p>
-                Search and update appointment details.
+                Select an appointment to view and update details.
             </p>
 
         </div>
@@ -119,18 +148,17 @@
 
         <div class="search-row">
 
-            <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Enter appointment number, e.g. APT00001"
+            <select
+                    id="appointmentSelect"
+                    onchange="searchAppointment()"
+                    style="width:100%;"
             >
 
-            <button
-                    class="btn-primary"
-                    onclick="searchAppointment()"
-            >
-                Search
-            </button>
+                <option value="">
+                    Loading appointments...
+                </option>
+
+            </select>
 
         </div>
 
@@ -147,7 +175,9 @@
             Appointment Details
         </h3>
 
+
         <div class="form-grid">
+
 
             <div class="form-group">
 
@@ -188,6 +218,7 @@
                 <input
                         type="text"
                         id="rPatientName"
+                        maxlength="100"
                         required
                 >
 
@@ -203,6 +234,7 @@
                 <input
                         type="text"
                         id="rContactNumber"
+                        maxlength="20"
                         required
                 >
 
@@ -211,7 +243,7 @@
 
             <div
                     class="form-group"
-                    style="grid-column: 1 / -1;"
+                    style="grid-column:1 / -1;"
             >
 
                 <label>
@@ -221,6 +253,7 @@
                 <input
                         type="text"
                         id="rAddress"
+                        maxlength="255"
                         required
                 >
 
@@ -291,6 +324,7 @@
 
         <button
                 class="btn-primary"
+                id="saveBtn"
                 onclick="updateAppointment()"
         >
             Save Changes
@@ -299,6 +333,7 @@
 
         <button
                 class="btn-secondary"
+                id="cancelBtn"
                 onclick="cancelAppointment()"
         >
             Cancel Appointment
@@ -311,8 +346,9 @@
             class="card-box empty-state"
             id="emptyState"
     >
-        No appointment loaded yet.
-        Search by appointment number above.
+
+        Select an appointment above.
+
     </div>
 
 </div>
@@ -320,199 +356,271 @@
 
 <script>
 
-    const API_URL =
-        "http://localhost:8080";
+    const API =
+        'http://localhost:8080';
 
 
-    // ---------------------------------
-    // CHECK LOGIN
-    // ---------------------------------
+    document.addEventListener(
+        'DOMContentLoaded',
+        () => {
 
-    const token =
-        localStorage.getItem("token");
+            document
+                .getElementById('rDate')
+                .min =
+                new Date()
+                    .toISOString()
+                    .split('T')[0];
 
-    if (!token) {
-
-        window.location.href =
-            "index.html";
-    }
+            loadAppointments();
+        }
+    );
 
 
-    // ---------------------------------
-    // AUTHENTICATED API REQUEST
-    // ---------------------------------
+    // LOAD APPOINTMENTS INTO DROPDOWN
+    async function loadAppointments(
+        selectedAppointment = ''
+    ) {
 
-    function authFetch(url, options = {}) {
+        const select =
+            document.getElementById(
+                'appointmentSelect'
+            );
 
-        options.headers =
-            options.headers || {};
 
-        options.headers[
-            "X-Auth-Token"
-        ] = token;
+        try {
 
-        return fetch(
-            url,
-            options
-        ).then(response => {
-
-            if (response.status === 401) {
-
-                localStorage.clear();
-
-                window.location.href =
-                    "index.html";
-
-                throw new Error(
-                    "Unauthorized"
+            const res =
+                await authFetch(
+                    `${API}/appointments`
                 );
+
+
+            const appointments =
+                await res.json();
+
+
+            if (!res.ok)
+                throw new Error();
+
+
+            select.innerHTML =
+                '<option value="">Select appointment</option>';
+
+
+            appointments.forEach(a => {
+
+                const option =
+                    document.createElement(
+                        'option'
+                    );
+
+
+                option.value =
+                    a.appointmentNo;
+
+
+                option.textContent =
+                    `${a.appointmentNo} - ${a.patientName} - ${a.appointmentDate} (${a.status})`;
+
+
+                if (
+                    a.appointmentNo ===
+                    selectedAppointment
+                ) {
+
+                    option.selected =
+                        true;
+                }
+
+
+                select.appendChild(
+                    option
+                );
+            });
+
+
+            if (!appointments.length) {
+
+                select.innerHTML =
+                    '<option value="">No appointments available</option>';
             }
 
-            return response;
-        });
+
+        } catch (e) {
+
+            console.error(e);
+
+            select.innerHTML =
+                '<option value="">Unable to load appointments</option>';
+        }
     }
 
 
-    // ---------------------------------
-    // SEARCH APPOINTMENT
-    // ---------------------------------
-
+    // LOAD SELECTED APPOINTMENT
     async function searchAppointment() {
 
         const appointmentNo =
             document
-                .getElementById("searchInput")
-                .value
-                .trim();
+                .getElementById(
+                    'appointmentSelect'
+                )
+                .value;
+
 
         if (!appointmentNo) {
 
-            alert(
-                "Please enter an appointment number."
+            document
+                .getElementById(
+                    'resultCard'
+                )
+                .style.display =
+                'none';
+
+
+            showEmpty(
+                'Select an appointment above.'
             );
 
             return;
         }
 
+
         try {
 
-            const response =
+            const res =
                 await authFetch(
-                    `${API_URL}/appointments/${appointmentNo}`
+                    `${API}/appointments/${appointmentNo}`
                 );
 
-            if (!response.ok) {
-
-                throw new Error(
-                    "Appointment not found"
-                );
-            }
 
             const data =
-                await response.json();
+                await res.json();
 
 
-            document
-                .getElementById("resultCard")
-                .style.display =
-                "block";
+            if (!res.ok) {
 
-            document
-                .getElementById("emptyState")
-                .style.display =
-                "none";
+                showEmpty(
+                    data.message ||
+                    'Appointment not found.'
+                );
 
-
-            document
-                .getElementById("rAppointmentNo")
-                .value =
-                data.appointmentNo || "";
-
-
-            document
-                .getElementById("rStatus")
-                .value =
-                data.status || "";
-
-
-            document
-                .getElementById("rPatientName")
-                .value =
-                data.patientName || "";
-
-
-            document
-                .getElementById("rContactNumber")
-                .value =
-                data.contactNumber || "";
-
-
-            document
-                .getElementById("rAddress")
-                .value =
-                data.address || "";
-
-
-            document
-                .getElementById("rDentist")
-                .value =
-                data.dentistName || "";
-
-
-            document
-                .getElementById("rTreatment")
-                .value =
-                data.treatmentName || "";
-
-
-            document
-                .getElementById("rDate")
-                .value =
-                data.appointmentDate || "";
-
-
-            let time =
-                data.appointmentTime || "";
-
-            if (time.length >= 5) {
-                time =
-                    time.substring(0, 5);
+                return;
             }
 
+
             document
-                .getElementById("rTime")
+                .getElementById(
+                    'resultCard'
+                )
+                .style.display =
+                'block';
+
+
+            document
+                .getElementById(
+                    'emptyState'
+                )
+                .style.display =
+                'none';
+
+
+            document
+                .getElementById(
+                    'rAppointmentNo'
+                )
                 .value =
-                time;
+                data.appointmentNo || '';
 
-        } catch (error) {
-
-            document
-                .getElementById("resultCard")
-                .style.display =
-                "none";
 
             document
-                .getElementById("emptyState")
-                .style.display =
-                "block";
+                .getElementById(
+                    'rStatus'
+                )
+                .value =
+                data.status || '';
+
 
             document
-                .getElementById("emptyState")
-                .textContent =
-                "No appointment found for that number.";
+                .getElementById(
+                    'rPatientName'
+                )
+                .value =
+                data.patientName || '';
+
+
+            document
+                .getElementById(
+                    'rContactNumber'
+                )
+                .value =
+                data.contactNumber || '';
+
+
+            document
+                .getElementById(
+                    'rAddress'
+                )
+                .value =
+                data.address || '';
+
+
+            document
+                .getElementById(
+                    'rDentist'
+                )
+                .value =
+                data.dentistName || '';
+
+
+            document
+                .getElementById(
+                    'rTreatment'
+                )
+                .value =
+                data.treatmentName || '';
+
+
+            document
+                .getElementById(
+                    'rDate'
+                )
+                .value =
+                data.appointmentDate || '';
+
+
+            document
+                .getElementById(
+                    'rTime'
+                )
+                .value =
+                (data.appointmentTime || '')
+                    .substring(0, 5);
+
+
+            setCancelledState(
+                data.status
+            );
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            showEmpty(
+                'Unable to load appointment.'
+            );
         }
     }
 
 
-    // ---------------------------------
-    // UPDATE APPOINTMENT
-    // ---------------------------------
-
+    // UPDATE
     async function updateAppointment() {
 
         const appointmentNo =
             document
-                .getElementById("rAppointmentNo")
+                .getElementById(
+                    'rAppointmentNo'
+                )
                 .value;
 
 
@@ -520,44 +628,93 @@
 
             patientName:
                 document
-                    .getElementById("rPatientName")
+                    .getElementById(
+                        'rPatientName'
+                    )
                     .value
                     .trim(),
 
             contactNumber:
                 document
-                    .getElementById("rContactNumber")
+                    .getElementById(
+                        'rContactNumber'
+                    )
                     .value
                     .trim(),
 
             address:
                 document
-                    .getElementById("rAddress")
+                    .getElementById(
+                        'rAddress'
+                    )
                     .value
                     .trim(),
 
             appointmentDate:
                 document
-                    .getElementById("rDate")
+                    .getElementById(
+                        'rDate'
+                    )
                     .value,
 
             appointmentTime:
                 document
-                    .getElementById("rTime")
+                    .getElementById(
+                        'rTime'
+                    )
                     .value
         };
 
 
         if (
-            !payload.patientName ||
-            !payload.contactNumber ||
+            !/^[A-Za-z ]{2,100}$/
+                .test(payload.patientName)
+        ) {
+
+            alert(
+                'Please enter a valid patient name.'
+            );
+
+            return;
+        }
+
+
+        if (
+            !/^[0-9+\- ]{7,20}$/
+                .test(payload.contactNumber)
+        ) {
+
+            alert(
+                'Please enter a valid contact number.'
+            );
+
+            return;
+        }
+
+
+        if (
             !payload.address ||
             !payload.appointmentDate ||
             !payload.appointmentTime
         ) {
 
             alert(
-                "Please complete all fields."
+                'Please complete all fields.'
+            );
+
+            return;
+        }
+
+
+        if (
+            payload.appointmentDate <
+            new Date()
+                .toISOString()
+                .split('T')[0]
+        ) {
+
+            alert(
+                'Past dates are not allowed.'
             );
 
             return;
@@ -566,15 +723,18 @@
 
         try {
 
-            const response =
+            const res =
                 await authFetch(
-                    `${API_URL}/appointments/${appointmentNo}`,
+                    `${API}/appointments/${appointmentNo}`,
                     {
-                        method: "PUT",
+
+                        method:
+                            'PUT',
 
                         headers: {
-                            "Content-Type":
-                                "application/json"
+
+                            'Content-Type':
+                                'application/json'
                         },
 
                         body:
@@ -586,14 +746,14 @@
 
 
             const data =
-                await response.json();
+                await res.json();
 
 
-            if (!response.ok) {
+            if (!res.ok) {
 
                 alert(
                     data.message ||
-                    "Unable to update appointment."
+                    'Unable to update appointment.'
                 );
 
                 return;
@@ -601,35 +761,43 @@
 
 
             alert(
-                "Appointment updated successfully."
+                'Appointment updated successfully.'
             );
 
 
-            searchAppointment();
+            await loadAppointments(
+                appointmentNo
+            );
 
 
-        } catch (error) {
+            await searchAppointment();
 
-            console.error(error);
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to connect to the server.'
+            );
         }
     }
 
 
-    // ---------------------------------
-    // CANCEL APPOINTMENT
-    // ---------------------------------
-
+    // CANCEL
     async function cancelAppointment() {
 
         const appointmentNo =
             document
-                .getElementById("rAppointmentNo")
+                .getElementById(
+                    'rAppointmentNo'
+                )
                 .value;
 
 
         if (
             !confirm(
-                "Are you sure you want to cancel this appointment?"
+                'Are you sure you want to cancel this appointment?'
             )
         ) {
 
@@ -639,24 +807,25 @@
 
         try {
 
-            const response =
+            const res =
                 await authFetch(
-                    `${API_URL}/appointments/${appointmentNo}`,
+                    `${API}/appointments/${appointmentNo}`,
                     {
-                        method: "DELETE"
+                        method:
+                            'DELETE'
                     }
                 );
 
 
             const data =
-                await response.json();
+                await res.json();
 
 
-            if (!response.ok) {
+            if (!res.ok) {
 
                 alert(
                     data.message ||
-                    "Unable to cancel appointment."
+                    'Unable to cancel appointment.'
                 );
 
                 return;
@@ -664,35 +833,122 @@
 
 
             alert(
-                "Appointment cancelled successfully."
+                'Appointment cancelled successfully.'
             );
 
 
-            searchAppointment();
+            await loadAppointments(
+                appointmentNo
+            );
 
 
-        } catch (error) {
+            await searchAppointment();
 
-            console.error(error);
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to connect to the server.'
+            );
         }
     }
 
 
-    // ---------------------------------
-    // LOGOUT (CLIENT SIDE FOR NOW)
-    // ---------------------------------
+    // DISABLE CANCELLED APPOINTMENTS
+    function setCancelledState(status) {
 
-    function logout() {
+        const cancelled =
+            String(status)
+                .toUpperCase()
+            === 'CANCELLED';
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        localStorage.removeItem("username");
 
-        window.location.href =
-            "index.html";
+        document
+            .getElementById(
+                'rPatientName'
+            )
+            .disabled =
+            cancelled;
+
+
+        document
+            .getElementById(
+                'rContactNumber'
+            )
+            .disabled =
+            cancelled;
+
+
+        document
+            .getElementById(
+                'rAddress'
+            )
+            .disabled =
+            cancelled;
+
+
+        document
+            .getElementById(
+                'rDate'
+            )
+            .disabled =
+            cancelled;
+
+
+        document
+            .getElementById(
+                'rTime'
+            )
+            .disabled =
+            cancelled;
+
+
+        document
+            .getElementById(
+                'saveBtn'
+            )
+            .disabled =
+            cancelled;
+
+
+        document
+            .getElementById(
+                'cancelBtn'
+            )
+            .disabled =
+            cancelled;
+    }
+
+
+    function showEmpty(message) {
+
+        document
+            .getElementById(
+                'resultCard'
+            )
+            .style.display =
+            'none';
+
+
+        const empty =
+            document
+                .getElementById(
+                    'emptyState'
+                );
+
+
+        empty.style.display =
+            'block';
+
+
+        empty.textContent =
+            message;
     }
 
 </script>
+
 
 </body>
 </html>

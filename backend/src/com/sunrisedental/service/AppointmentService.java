@@ -7,11 +7,13 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 public class AppointmentService {
 
     private final AppointmentDAO appointmentDAO =
             new AppointmentDAO();
+
 
     public Appointment register(
             Appointment appointment
@@ -23,6 +25,15 @@ public class AppointmentService {
                 appointment
         );
     }
+
+
+    // NEW
+    public List<Appointment> getAll()
+            throws SQLException {
+
+        return appointmentDAO.findAll();
+    }
+
 
     public Appointment search(
             String appointmentNo
@@ -40,6 +51,7 @@ public class AppointmentService {
                 appointmentNo.trim()
         );
     }
+
 
     public boolean update(
             String appointmentNo,
@@ -64,6 +76,7 @@ public class AppointmentService {
         );
     }
 
+
     public boolean cancel(
             String appointmentNo
     ) throws SQLException {
@@ -81,6 +94,7 @@ public class AppointmentService {
         );
     }
 
+
     private void validateAppointment(
             Appointment appointment
     ) {
@@ -90,17 +104,20 @@ public class AppointmentService {
         validateTime(appointment.getAppointmentTime());
 
         if (appointment.getDentistId() <= 0) {
+
             throw new IllegalArgumentException(
                     "Please select a dentist."
             );
         }
 
         if (appointment.getTreatmentId() <= 0) {
+
             throw new IllegalArgumentException(
                     "Please select a treatment."
             );
         }
     }
+
 
     private void validatePatientDetails(
             Appointment appointment
@@ -114,6 +131,7 @@ public class AppointmentService {
             );
         }
 
+
         if (appointment.getContactNumber() == null
                 || appointment.getContactNumber().trim().isEmpty()) {
 
@@ -121,6 +139,7 @@ public class AppointmentService {
                     "Contact number is required."
             );
         }
+
 
         if (!appointment.getContactNumber()
                 .matches("[0-9+\\- ]{7,20}")) {
@@ -130,6 +149,7 @@ public class AppointmentService {
             );
         }
 
+
         if (appointment.getAddress() == null
                 || appointment.getAddress().trim().isEmpty()) {
 
@@ -138,6 +158,7 @@ public class AppointmentService {
             );
         }
     }
+
 
     private void validateDate(String dateString) {
 
@@ -168,6 +189,7 @@ public class AppointmentService {
             );
         }
     }
+
 
     private void validateTime(String timeString) {
 

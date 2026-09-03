@@ -50,63 +50,120 @@
 
             <div class="form-grid">
 
+                <!-- Appointment Number -->
+                <div class="form-group" style="grid-column:1 / -1;">
+                    <label>Appointment Number</label>
+                    <input
+                            type="text"
+                            id="appointmentNo"
+                            placeholder="Auto-generated after registration"
+                            readonly
+                    >
+                </div>
+
+
                 <div class="form-group">
                     <label>Patient Name</label>
-                    <input type="text" id="patientName" maxlength="100" required>
+                    <input
+                            type="text"
+                            id="patientName"
+                            maxlength="100"
+                            required
+                    >
                 </div>
+
 
                 <div class="form-group">
                     <label>Contact Number</label>
-                    <input type="text" id="contactNumber" maxlength="20" required>
+                    <input
+                            type="text"
+                            id="contactNumber"
+                            maxlength="20"
+                            required
+                    >
                 </div>
+
 
                 <div class="form-group" style="grid-column:1 / -1;">
                     <label>Address</label>
-                    <input type="text" id="address" maxlength="255" required>
+                    <input
+                            type="text"
+                            id="address"
+                            maxlength="255"
+                            required
+                    >
                 </div>
+
 
                 <div class="form-group">
                     <label>Dentist</label>
+
                     <select id="dentistId" required>
                         <option value="">Loading dentists...</option>
                     </select>
                 </div>
 
+
                 <div class="form-group">
                     <label>Treatment Type</label>
+
                     <select id="treatmentId" required>
                         <option value="">Loading treatments...</option>
                     </select>
                 </div>
 
+
                 <div class="form-group">
                     <label>Appointment Date</label>
-                    <input type="date" id="appointmentDate" required>
+
+                    <input
+                            type="date"
+                            id="appointmentDate"
+                            required
+                    >
                 </div>
+
 
                 <div class="form-group">
                     <label>Appointment Time</label>
-                    <input type="time" id="appointmentTime" required>
+
+                    <input
+                            type="time"
+                            id="appointmentTime"
+                            required
+                    >
                 </div>
 
             </div>
 
-            <button type="submit" class="btn-primary" id="submitBtn">
+
+            <button
+                    type="submit"
+                    class="btn-primary"
+                    id="submitBtn"
+            >
                 Register Appointment
             </button>
 
         </form>
 
     </div>
+
 </div>
 
 
 <script>
+
     const API = 'http://localhost:8080';
 
+
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('appointmentDate').min =
-            new Date().toISOString().split('T')[0];
+
+        const today = new Date()
+            .toISOString()
+            .split('T')[0];
+
+        document.getElementById('appointmentDate').min = today;
 
         loadDentists();
         loadTreatments();
@@ -114,133 +171,288 @@
 
 
     async function loadDentists() {
-        const select = document.getElementById('dentistId');
+
+        const select =
+            document.getElementById('dentistId');
 
         try {
-            const res = await authFetch(`${API}/dentists`);
-            const dentists = await res.json();
 
-            select.innerHTML = '<option value="">Select dentist</option>';
+            const res =
+                await authFetch(`${API}/dentists`);
+
+            const dentists =
+                await res.json();
+
+            if (!res.ok)
+                throw new Error();
+
+            select.innerHTML =
+                '<option value="">Select dentist</option>';
 
             dentists.forEach(d => {
-                select.innerHTML += `
-                    <option value="${d.dentistId}">
-                        ${escapeHtml(d.name)}${d.specialization ? ' - ' + escapeHtml(d.specialization) : ''}
-                    </option>
-                `;
+
+                const option =
+                    document.createElement('option');
+
+                option.value =
+                    d.dentistId;
+
+                option.textContent =
+                    d.specialization
+                        ? `${d.name} - ${d.specialization}`
+                        : d.name;
+
+                select.appendChild(option);
             });
 
         } catch (e) {
-            select.innerHTML = '<option value="">Unable to load dentists</option>';
+
+            select.innerHTML =
+                '<option value="">Unable to load dentists</option>';
         }
     }
 
 
     async function loadTreatments() {
-        const select = document.getElementById('treatmentId');
+
+        const select =
+            document.getElementById('treatmentId');
 
         try {
-            const res = await authFetch(`${API}/treatments`);
-            const treatments = await res.json();
 
-            select.innerHTML = '<option value="">Select treatment</option>';
+            const res =
+                await authFetch(`${API}/treatments`);
+
+            const treatments =
+                await res.json();
+
+            if (!res.ok)
+                throw new Error();
+
+            select.innerHTML =
+                '<option value="">Select treatment</option>';
 
             treatments.forEach(t => {
-                select.innerHTML += `
-                    <option value="${t.treatmentId}">
-                        ${escapeHtml(t.treatmentName)} - Rs. ${Number(t.consultationFee).toLocaleString()}
-                    </option>
-                `;
+
+                const option =
+                    document.createElement('option');
+
+                option.value =
+                    t.treatmentId;
+
+                option.textContent =
+                    `${t.treatmentName} - Rs. ${Number(t.consultationFee).toLocaleString()}`;
+
+                select.appendChild(option);
             });
 
         } catch (e) {
-            select.innerHTML = '<option value="">Unable to load treatments</option>';
+
+            select.innerHTML =
+                '<option value="">Unable to load treatments</option>';
         }
     }
 
 
-    document.getElementById('appointmentForm').addEventListener('submit', async e => {
-        e.preventDefault();
+    document.getElementById('appointmentForm')
+        .addEventListener('submit', async e => {
 
-        const msg = document.getElementById('msgBox');
-        const btn = document.getElementById('submitBtn');
+            e.preventDefault();
 
-        const payload = {
-            patientName: document.getElementById('patientName').value.trim(),
-            contactNumber: document.getElementById('contactNumber').value.trim(),
-            address: document.getElementById('address').value.trim(),
-            dentistId: document.getElementById('dentistId').value,
-            treatmentId: document.getElementById('treatmentId').value,
-            appointmentDate: document.getElementById('appointmentDate').value,
-            appointmentTime: document.getElementById('appointmentTime').value
-        };
+            const msg =
+                document.getElementById('msgBox');
 
-        if (!/^[A-Za-z ]{2,100}$/.test(payload.patientName)) {
-            return showError('Please enter a valid patient name.');
-        }
+            const btn =
+                document.getElementById('submitBtn');
 
-        if (!/^[0-9+\- ]{7,20}$/.test(payload.contactNumber)) {
-            return showError('Please enter a valid contact number.');
-        }
 
-        if (!payload.address || !payload.dentistId || !payload.treatmentId ||
-            !payload.appointmentDate || !payload.appointmentTime) {
-            return showError('Please complete all fields.');
-        }
+            const payload = {
 
-        if (payload.appointmentDate < new Date().toISOString().split('T')[0]) {
-            return showError('Past dates are not allowed.');
-        }
+                patientName:
+                    document.getElementById('patientName')
+                        .value.trim(),
 
-        btn.disabled = true;
-        btn.textContent = 'Registering...';
+                contactNumber:
+                    document.getElementById('contactNumber')
+                        .value.trim(),
 
-        try {
-            const res = await authFetch(`${API}/appointments`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            });
+                address:
+                    document.getElementById('address')
+                        .value.trim(),
 
-            const data = await res.json();
+                dentistId:
+                    document.getElementById('dentistId')
+                        .value,
 
-            if (!res.ok) {
-                showError(data.message || 'Failed to register appointment.');
+                treatmentId:
+                    document.getElementById('treatmentId')
+                        .value,
+
+                appointmentDate:
+                    document.getElementById('appointmentDate')
+                        .value,
+
+                appointmentTime:
+                    document.getElementById('appointmentTime')
+                        .value
+            };
+
+
+            // Patient name validation
+            if (!/^[A-Za-z ]{2,100}$/.test(payload.patientName)) {
+
+                showError(
+                    'Please enter a valid patient name.'
+                );
+
                 return;
             }
 
-            msg.className = 'msg-box success';
-            msg.textContent =
-                `Appointment registered successfully. Appointment No: ${data.appointmentNo}`;
 
-            document.getElementById('appointmentForm').reset();
+            // Contact number validation
+            if (!/^[0-9+\- ]{7,20}$/.test(payload.contactNumber)) {
 
-            document.getElementById('appointmentDate').min =
-                new Date().toISOString().split('T')[0];
+                showError(
+                    'Please enter a valid contact number.'
+                );
 
-        } catch (e) {
-            showError('Cannot connect to the server.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Register Appointment';
-        }
-    });
+                return;
+            }
+
+
+            // Required fields
+            if (
+                !payload.address ||
+                !payload.dentistId ||
+                !payload.treatmentId ||
+                !payload.appointmentDate ||
+                !payload.appointmentTime
+            ) {
+
+                showError(
+                    'Please complete all fields.'
+                );
+
+                return;
+            }
+
+
+            // Past date validation
+            const today =
+                new Date()
+                    .toISOString()
+                    .split('T')[0];
+
+            if (payload.appointmentDate < today) {
+
+                showError(
+                    'Past dates are not allowed.'
+                );
+
+                return;
+            }
+
+
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+
+            try {
+
+                const res =
+                    await authFetch(
+                        `${API}/appointments`,
+                        {
+                            method: 'POST',
+
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+
+                            body:
+                                JSON.stringify(payload)
+                        }
+                    );
+
+
+                const data =
+                    await res.json();
+
+
+                if (!res.ok) {
+
+                    showError(
+                        data.message ||
+                        'Failed to register appointment.'
+                    );
+
+                    return;
+                }
+
+
+                // Save generated appointment number
+                const generatedNo =
+                    data.appointmentNo || '';
+
+
+                msg.className =
+                    'msg-box success';
+
+                msg.textContent =
+                    `Appointment registered successfully. Appointment No: ${generatedNo}`;
+
+
+                // Reset form
+                document
+                    .getElementById('appointmentForm')
+                    .reset();
+
+
+                // Show generated number after reset
+                document
+                    .getElementById('appointmentNo')
+                    .value =
+                    generatedNo;
+
+
+                // Reapply minimum date
+                document
+                    .getElementById('appointmentDate')
+                    .min =
+                    today;
+
+
+            } catch (e) {
+
+                console.error(e);
+
+                showError(
+                    'Cannot connect to the server.'
+                );
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.textContent =
+                    'Register Appointment';
+            }
+        });
 
 
     function showError(message) {
-        const msg = document.getElementById('msgBox');
-        msg.className = 'msg-box error';
-        msg.textContent = message;
+
+        const msg =
+            document.getElementById('msgBox');
+
+        msg.className =
+            'msg-box error';
+
+        msg.textContent =
+            message;
     }
 
-
-    function escapeHtml(value) {
-        return String(value || '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;');
-    }
 </script>
 
 </body>
