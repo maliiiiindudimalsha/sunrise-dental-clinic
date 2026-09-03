@@ -18,7 +18,7 @@ public class AppointmentController implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
 
-        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+
         exchange.getResponseHeaders().set(
                 "Access-Control-Allow-Headers",
                 "Content-Type, X-Auth-Token"

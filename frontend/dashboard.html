@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sunrise Dental</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
 </head>
+
 <body>
 
 <div class="sidebar">
     <div class="brand">Sunrise Dental</div>
+
     <ul class="sidebar-menu">
         <li><a href="dashboard.html" class="active">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
@@ -23,6 +27,7 @@
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
+
     <div class="theme-toggle">
         <span>Light</span>
         <label class="switch">
@@ -31,100 +36,214 @@
         </label>
         <span>Dark</span>
     </div>
-    <a href="index.html" class="logout-btn">Log Out</a>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
 </div>
 
+
 <div class="main-content">
+
     <div class="header">
         <div>
-            <h1>Welcome back, Admin</h1>
+            <h1 id="welcomeText">Welcome back</h1>
             <p>Here's what's happening at the clinic today.</p>
         </div>
     </div>
 
-    <!-- Top stats row -->
+
     <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr);">
+
         <div class="stat-featured">
             <h4>Today's Appointments</h4>
-            <p>12</p>
-            <div class="stat-sub">3 pending confirmation</div>
-        </div>
-        <div class="summary-card">
-            <h4>Active Patients</h4>
-            <p>145</p>
-        </div>
-        <div class="summary-card">
-            <h4>Monthly Revenue</h4>
-            <p>Rs. 540,300</p>
-        </div>
-    </div>
-
-    <!-- Schedule + Chart -->
-    <div class="dashboard-grid">
-        <div class="card-box">
-            <h3>Today's Schedule</h3>
-            <div class="schedule-list">
-                <div class="schedule-item">
-                    <span class="time">09:00 AM</span>
-                    <div class="info"><strong>Kasun Perera</strong><span>Root Canal - Dr. Silva</span></div>
-                </div>
-                <div class="schedule-item">
-                    <span class="time">10:30 AM</span>
-                    <div class="info"><strong>Amali Fernando</strong><span>Teeth Whitening - Dr. Silva</span></div>
-                </div>
-                <div class="schedule-item">
-                    <span class="time">11:00 AM</span>
-                    <div class="info"><strong>Nuwan Jayasinghe</strong><span>General Checkup - Dr. Perera</span></div>
-                </div>
-                <div class="schedule-item">
-                    <span class="time">02:00 PM</span>
-                    <div class="info"><strong>Tharushi Silva</strong><span>Tooth Filling - Dr. Perera</span></div>
-                </div>
+            <p id="todayAppointments">0</p>
+            <div class="stat-sub">
+                <span id="pendingToday">0</span> pending confirmation
             </div>
         </div>
+
+        <div class="summary-card">
+            <h4>Active Patients</h4>
+            <p id="activePatients">0</p>
+        </div>
+
+        <div class="summary-card">
+            <h4>Monthly Revenue</h4>
+            <p id="monthlyRevenue">Rs. 0</p>
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+        <div class="card-box">
+            <h3>Today's Schedule</h3>
+            <div class="schedule-list" id="scheduleList">
+                <div class="empty-state">Loading...</div>
+            </div>
+        </div>
+
 
         <div class="card-box">
             <h3>Revenue Trend (Last 6 Months)</h3>
-            <div class="bar-chart">
-                <div class="bar-col"><div class="bar" style="height:45%"></div><span class="bar-label">Apr</span></div>
-                <div class="bar-col"><div class="bar" style="height:55%"></div><span class="bar-label">May</span></div>
-                <div class="bar-col"><div class="bar" style="height:50%"></div><span class="bar-label">Jun</span></div>
-                <div class="bar-col"><div class="bar" style="height:68%"></div><span class="bar-label">Jul</span></div>
-                <div class="bar-col"><div class="bar" style="height:78%"></div><span class="bar-label">Aug</span></div>
-                <div class="bar-col"><div class="bar" style="height:100%"></div><span class="bar-label">Sep</span></div>
-            </div>
+            <div class="bar-chart" id="revenueChart"></div>
         </div>
+
     </div>
 
-    <!-- Recent appointments table -->
+
     <div class="card-box">
+
         <h3>Recent Appointments</h3>
+
         <table>
             <thead>
-            <tr><th>Patient Name</th><th>Treatment</th><th>Dentist</th><th>Time</th><th>Status</th></tr>
+            <tr>
+                <th>Patient Name</th>
+                <th>Treatment</th>
+                <th>Dentist</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
             </thead>
-            <tbody>
+
+            <tbody id="recentAppointments">
             <tr>
-                <td>Kasun Perera</td><td>Root Canal</td><td>Dr. Silva</td><td>09:00 AM</td>
-                <td><span class="status confirmed">Confirmed</span></td>
-            </tr>
-            <tr>
-                <td>Amali Fernando</td><td>Teeth Whitening</td><td>Dr. Silva</td><td>10:30 AM</td>
-                <td><span class="status pending">Pending</span></td>
-            </tr>
-            <tr>
-                <td>Nuwan Jayasinghe</td><td>General Checkup</td><td>Dr. Perera</td><td>11:00 AM</td>
-                <td><span class="status confirmed">Confirmed</span></td>
+                <td colspan="5" class="empty-state">Loading...</td>
             </tr>
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
+
 <script>
-    // NOTE: all numbers above are placeholder/seed data.
-    // Once AppointmentController + ReportController exist, replace with:
-    // fetch('http://localhost:8080/appointments') and fetch('http://localhost:8080/reports')
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+
+    async function loadDashboard() {
+        document.getElementById('welcomeText').textContent =
+            `Welcome back, ${localStorage.getItem('username') || 'User'}`;
+
+        try {
+            const res = await authFetch('http://localhost:8080/dashboard');
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.message);
+
+            document.getElementById('todayAppointments').textContent =
+                data.todayAppointments || 0;
+
+            document.getElementById('pendingToday').textContent =
+                data.pendingToday || 0;
+
+            document.getElementById('activePatients').textContent =
+                data.activePatients || 0;
+
+            document.getElementById('monthlyRevenue').textContent =
+                `Rs. ${Number(data.monthlyRevenue || 0).toLocaleString()}`;
+
+            loadSchedule(data.schedule || []);
+            loadChart(data.revenueTrend || []);
+            loadRecent(data.recentAppointments || []);
+
+        } catch (e) {
+            console.error('Dashboard Error:', e);
+        }
+    }
+
+
+    function loadSchedule(rows) {
+        const box = document.getElementById('scheduleList');
+
+        if (!rows.length) {
+            box.innerHTML = '<div class="empty-state">No appointments today.</div>';
+            return;
+        }
+
+        box.innerHTML = rows.map(r => `
+            <div class="schedule-item">
+                <span class="time">${formatTime(r.time)}</span>
+                <div class="info">
+                    <strong>${escapeHtml(r.patient)}</strong>
+                    <span>${escapeHtml(r.treatment)} - ${escapeHtml(r.dentist)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+
+    function loadChart(rows) {
+        const chart = document.getElementById('revenueChart');
+
+        if (!rows.length) {
+            chart.innerHTML = '<div class="empty-state">No revenue data.</div>';
+            return;
+        }
+
+        const max = Math.max(...rows.map(r => Number(r.revenue)), 1);
+
+        chart.innerHTML = rows.map(r => {
+            const height = Math.max((Number(r.revenue) / max) * 100, 5);
+
+            return `
+                <div class="bar-col" title="Rs. ${Number(r.revenue).toLocaleString()}">
+                    <div class="bar" style="height:${height}%"></div>
+                    <span class="bar-label">${escapeHtml(r.month)}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+
+    function loadRecent(rows) {
+        const table = document.getElementById('recentAppointments');
+
+        if (!rows.length) {
+            table.innerHTML =
+                '<tr><td colspan="5" class="empty-state">No appointments available.</td></tr>';
+            return;
+        }
+
+        table.innerHTML = rows.map(r => `
+            <tr>
+                <td>${escapeHtml(r.patient)}</td>
+                <td>${escapeHtml(r.treatment)}</td>
+                <td>${escapeHtml(r.dentist)}</td>
+                <td>${formatTime(r.time)}</td>
+                <td>
+                    <span class="status ${r.status.toLowerCase()}">
+                        ${escapeHtml(r.status)}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+
+    function formatTime(time) {
+        if (!time) return '-';
+
+        const [h, m] = time.split(':');
+        let hour = Number(h);
+        const suffix = hour >= 12 ? 'PM' : 'AM';
+
+        hour = hour % 12 || 12;
+
+        return `${String(hour).padStart(2, '0')}:${m} ${suffix}`;
+    }
+
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+    }
 </script>
+
 </body>
 </html>

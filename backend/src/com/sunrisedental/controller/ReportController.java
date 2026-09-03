@@ -16,7 +16,7 @@ public class ReportController implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+
         exchange.getResponseHeaders().add("Content-Type", "application/json");
 
         if (!"GET".equals(exchange.getRequestMethod())) {
