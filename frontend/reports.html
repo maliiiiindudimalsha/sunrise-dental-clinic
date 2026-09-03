@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Reports & Analytics - Sunrise Dental</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
 </head>
+
 <body>
 
 <div class="sidebar">
+
     <div class="brand">Sunrise Dental</div>
+
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
@@ -21,10 +29,25 @@
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
-    <a href="index.html" class="logout-btn">Log Out</a>
+
+    <div class="theme-toggle">
+        <span>Light</span>
+
+        <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="slider"></span>
+        </label>
+
+        <span>Dark</span>
+    </div>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+
 </div>
 
+
 <div class="main-content">
+
     <div class="header">
         <div>
             <h1>Reports &amp; Analytics</h1>
@@ -32,70 +55,367 @@
         </div>
     </div>
 
+
     <div class="card-box">
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto; align-items: end;">
-            <div class="form-group"><label>From Date</label><input type="date" id="fromDate"></div>
-            <div class="form-group"><label>To Date</label><input type="date" id="toDate"></div>
+
+        <div class="form-grid"
+             style="grid-template-columns:1fr 1fr 1fr auto; align-items:end;">
+
+            <div class="form-group">
+                <label>From Date</label>
+                <input type="date" id="fromDate">
+            </div>
+
+            <div class="form-group">
+                <label>To Date</label>
+                <input type="date" id="toDate">
+            </div>
+
             <div class="form-group">
                 <label>Dentist</label>
+
                 <select id="dentistFilter">
-                    <option value="">All dentists</option>
-                    <option value="1">Dr. Silva</option>
-                    <option value="2">Dr. Perera</option>
+                    <option value="">Loading dentists...</option>
                 </select>
             </div>
-            <button class="btn-primary" onclick="loadReport()">Generate</button>
+
+            <button class="btn-primary" onclick="loadReport()">
+                Generate
+            </button>
+
         </div>
+
     </div>
+
 
     <div class="summary-grid">
-        <div class="summary-card"><h4>Total Appointments</h4><p id="sTotalAppointments">-</p></div>
-        <div class="summary-card"><h4>Total Revenue</h4><p id="sTotalRevenue">-</p></div>
-        <div class="summary-card"><h4>Busiest Dentist</h4><p id="sBusiestDentist" style="font-size:16px;">-</p></div>
-        <div class="summary-card"><h4>Most Booked Treatment</h4><p id="sTopTreatment" style="font-size:16px;">-</p></div>
+
+        <div class="summary-card">
+            <h4>Total Appointments</h4>
+            <p id="sTotalAppointments">-</p>
+        </div>
+
+        <div class="summary-card">
+            <h4>Total Revenue</h4>
+            <p id="sTotalRevenue">-</p>
+        </div>
+
+        <div class="summary-card">
+            <h4>Busiest Dentist</h4>
+            <p id="sBusiestDentist" style="font-size:16px;">-</p>
+        </div>
+
+        <div class="summary-card">
+            <h4>Most Booked Treatment</h4>
+            <p id="sTopTreatment" style="font-size:16px;">-</p>
+        </div>
+
     </div>
+
 
     <div class="card-box">
+
         <h3>Appointment Breakdown</h3>
+
         <table>
-            <thead><tr><th>Date</th><th>Dentist</th><th>Treatment</th><th>Appointments</th><th>Revenue</th></tr></thead>
+
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Dentist</th>
+                <th>Treatment</th>
+                <th>Appointments</th>
+                <th>Revenue</th>
+            </tr>
+            </thead>
+
             <tbody id="reportRows">
-            <tr><td colspan="5" class="empty-state">Click "Generate" to load the report.</td></tr>
+
+            <tr>
+                <td colspan="5" class="empty-state">
+                    Click "Generate" to load the report.
+                </td>
+            </tr>
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
+
 <script>
-    // ReportController will expose GET /reports?from=...&to=...&dentistId=...
-    // returning summary stats plus a breakdown array used to fill the table.
 
-    function loadReport() {
-        const from = document.getElementById('fromDate').value;
-        const to = document.getElementById('toDate').value;
-        const dentistId = document.getElementById('dentistFilter').value;
+    const API = 'http://localhost:8080';
 
-        const params = new URLSearchParams({ from, to, dentistId });
 
-        fetch(`http://localhost:8080/reports?${params}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('sTotalAppointments').textContent = data.totalAppointments ?? '0';
-                document.getElementById('sTotalRevenue').textContent = `Rs. ${data.totalRevenue ?? 0}`;
-                document.getElementById('sBusiestDentist').textContent = data.busiestDentist ?? '-';
-                document.getElementById('sTopTreatment').textContent = data.topTreatment ?? '-';
+    document.addEventListener('DOMContentLoaded', () => {
 
-                const rows = (data.breakdown || []).map(r => `
-                    <tr>
-                        <td>${r.date}</td><td>${r.dentist}</td><td>${r.treatment}</td>
-                        <td>${r.count}</td><td>Rs. ${r.revenue}</td>
-                    </tr>`).join('');
-                document.getElementById('reportRows').innerHTML = rows || '<tr><td colspan="5" class="empty-state">No data for this range.</td></tr>';
-            })
-            .catch(() => {
-                document.getElementById('reportRows').innerHTML = '<tr><td colspan="5" class="empty-state">Backend endpoint not built yet.</td></tr>';
-            });
+        if (
+            String(localStorage.getItem('role')).toUpperCase()
+            !== 'ADMIN'
+        ) {
+            alert('Admin access only.');
+            location.href = 'dashboard.html';
+            return;
+        }
+
+        loadDentists();
+        setDefaultDates();
+    });
+
+
+    function setDefaultDates() {
+
+        const today = new Date();
+
+        const firstDay =
+            new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                1
+            );
+
+        document.getElementById('fromDate').value =
+            formatInputDate(firstDay);
+
+        document.getElementById('toDate').value =
+            formatInputDate(today);
     }
+
+
+    function formatInputDate(date) {
+
+        const year = date.getFullYear();
+
+        const month =
+            String(date.getMonth() + 1)
+                .padStart(2, '0');
+
+        const day =
+            String(date.getDate())
+                .padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+
+    async function loadDentists() {
+
+        const select =
+            document.getElementById('dentistFilter');
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/dentists`
+                );
+
+            const dentists =
+                await res.json();
+
+            if (!res.ok)
+                throw new Error();
+
+
+            select.innerHTML =
+                '<option value="">All dentists</option>';
+
+
+            dentists.forEach(d => {
+
+                const option =
+                    document.createElement('option');
+
+                option.value =
+                    d.dentistId;
+
+                option.textContent =
+                    d.name;
+
+                select.appendChild(option);
+            });
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            select.innerHTML =
+                '<option value="">Unable to load dentists</option>';
+        }
+    }
+
+
+    async function loadReport() {
+
+        const from =
+            document.getElementById('fromDate').value;
+
+        const to =
+            document.getElementById('toDate').value;
+
+        const dentistId =
+            document.getElementById('dentistFilter').value;
+
+
+        if (!from || !to) {
+
+            alert(
+                'Please select both From Date and To Date.'
+            );
+
+            return;
+        }
+
+
+        if (from > to) {
+
+            alert(
+                'From Date cannot be after To Date.'
+            );
+
+            return;
+        }
+
+
+        const params =
+            new URLSearchParams({
+                from,
+                to
+            });
+
+
+        if (dentistId) {
+
+            params.set(
+                'dentistId',
+                dentistId
+            );
+        }
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/reports?${params.toString()}`
+                );
+
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                throw new Error(
+                    data.message ||
+                    'Unable to generate report.'
+                );
+            }
+
+
+            document
+                .getElementById('sTotalAppointments')
+                .textContent =
+                data.totalAppointments ?? 0;
+
+
+            document
+                .getElementById('sTotalRevenue')
+                .textContent =
+                `Rs. ${Number(
+                    data.totalRevenue || 0
+                ).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
+
+
+            document
+                .getElementById('sBusiestDentist')
+                .textContent =
+                data.busiestDentist || 'N/A';
+
+
+            document
+                .getElementById('sTopTreatment')
+                .textContent =
+                data.topTreatment || 'N/A';
+
+
+            const rows =
+                (data.breakdown || [])
+                    .map(r => `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHtml(r.date)}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(r.dentist)}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(r.treatment)}
+                            </td>
+
+                            <td>
+                                ${r.count}
+                            </td>
+
+                            <td>
+                                Rs. ${Number(r.revenue || 0)
+                                    .toLocaleString(undefined, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+                            </td>
+
+                        </tr>
+
+                    `).join('');
+
+
+            document
+                .getElementById('reportRows')
+                .innerHTML =
+                rows ||
+                '<tr><td colspan="5" class="empty-state">No data for this range.</td></tr>';
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            document
+                .getElementById('reportRows')
+                .innerHTML =
+                `<tr>
+                    <td colspan="5" class="empty-state">
+                        ${escapeHtml(e.message)}
+                    </td>
+                </tr>`;
+        }
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+    }
+
 </script>
+
 </body>
 </html>
