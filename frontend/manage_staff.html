@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Staff - Sunrise Dental</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand">Sunrise Dental</div>
+
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.html">Dashboard / Home</a></li>
+        <li><a href="register_appointment.html">Register Appointment</a></li>
+        <li><a href="manage_appointments.html">Search / Update</a></li>
+        <li><a href="billing.html">Billing &amp; Receipt</a></li>
+        <li><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
+        <li><a href="manage_staff.html" class="active">Manage Staff</a></li>
+        <li><a href="reports.html">Reports &amp; Analytics</a></li>
+        <li><a href="notifications.html">Notifications</a></li>
+        <li><a href="help.html">Help / Instructions</a></li>
+    </ul>
+
+    <div class="theme-toggle">
+        <span>Light</span>
+        <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="slider"></span>
+        </label>
+        <span>Dark</span>
+    </div>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+</div>
+
+<div class="main-content">
+
+    <div class="header">
+        <div>
+            <h1>Manage Staff</h1>
+            <p>Admin only - add, restrict, or deactivate staff accounts.</p>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <h3>Staff Accounts</h3>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="staffRows">
+            <tr><td colspan="4" class="empty-state">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-box">
+        <h3>Add New Staff</h3>
+
+        <div id="msgBox" class="msg-box"></div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="newUsername" maxlength="50">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="newPassword" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="newRole">
+                    <option value="RECEPTIONIST">Receptionist</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="addStaff()">Add Staff</button>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://localhost:8080';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
+            alert('Admin access only.');
+            location.href = 'dashboard.html';
+            return;
+        }
+        loadStaff();
+    });
+
+    async function loadStaff() {
+        const rows = document.getElementById('staffRows');
+        const myUsername = localStorage.getItem('username');
+
+        try {
+            const res = await authFetch(`${API}/staff`);
+            const data = await res.json();
+            if (!res.ok) throw new Error();
+
+            if (!data.length) {
+                rows.innerHTML = '<tr><td colspan="4" class="empty-state">No staff accounts found.</td></tr>';
+                return;
+            }
+
+            rows.innerHTML = data.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.username)}${s.username === myUsername ? ' (you)' : ''}</td>
+                    <td>
+                        <select onchange="updateRole(${s.staffId}, this.value)" ${s.username === myUsername ? 'disabled' : ''}>
+                            <option value="RECEPTIONIST" ${s.role === 'RECEPTIONIST' ? 'selected' : ''}>Receptionist</option>
+                            <option value="ADMIN" ${s.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span class="status ${s.active ? 'confirmed' : 'cancelled'}">
+                            ${s.active ? 'Active' : 'Deactivated'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-secondary" onclick="resetPassword(${s.staffId})">Reset Password</button>
+                        ${s.username === myUsername
+                            ? ''
+                            : s.active
+                                ? `<button class="btn-secondary" onclick="toggleActive(${s.staffId}, false)">Deactivate</button>`
+                                : `<button class="btn-secondary" onclick="toggleActive(${s.staffId}, true)">Activate</button>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+
+        } catch (e) {
+            console.error(e);
+            rows.innerHTML = '<tr><td colspan="4" class="empty-state">Unable to load staff accounts.</td></tr>';
+        }
+    }
+
+    async function addStaff() {
+        const username = document.getElementById('newUsername').value.trim();
+        const password = document.getElementById('newPassword').value;
+        const role = document.getElementById('newRole').value;
+        const msg = document.getElementById('msgBox');
+
+        if (username.length < 3) {
+            return showMsg('Username must be at least 3 characters.', false);
+        }
+        if (password.length < 6) {
+            return showMsg('Password must be at least 6 characters.', false);
+        }
+
+        try {
+            const res = await authFetch(`${API}/staff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                return showMsg(data.message || 'Unable to add staff.', false);
+            }
+
+            showMsg('Staff account added successfully.', true);
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            loadStaff();
+
+        } catch (e) {
+            showMsg('Unable to connect to the server.', false);
+        }
+    }
+
+    async function updateRole(id, role) {
+        try {
+            const res = await authFetch(`${API}/staff/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.message || 'Unable to update role.');
+                loadStaff();
+                return;
+            }
+            loadStaff();
+        } catch (e) {
+            alert('Unable to connect to the server.');
+        }
+    }
+
+    async function resetPassword(id) {
+        const newPassword = prompt('Enter a new password for this staff member (min 6 characters):');
+        if (!newPassword) return;
+
+        if (newPassword.length < 6) {
+            alert('Password must be at least 6 characters.');
+            return;
+        }
+
+        try {
+            const res = await authFetch(`${API}/staff/${id}/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || 'Unable to reset password.');
+                return;
+            }
+            alert('Password reset successfully.');
+
+        } catch (e) {
+            alert('Unable to connect to the server.');
+        }
+    }
+
+    async function toggleActive(id, activate) {
+        const label = activate ? 'activate' : 'deactivate';
+        if (!confirm(`Are you sure you want to ${label} this staff account?`)) return;
+
+        try {
+            const res = await authFetch(`${API}/staff/${id}${activate ? '/activate' : ''}`, {
+                method: activate ? 'PUT' : 'DELETE'
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || `Unable to ${label} staff account.`);
+                return;
+            }
+            loadStaff();
+
+        } catch (e) {
+            alert('Unable to connect to the server.');
+        }
+    }
+
+    function showMsg(text, success) {
+        const msg = document.getElementById('msgBox');
+        msg.className = success ? 'msg-box success' : 'msg-box error';
+        msg.textContent = text;
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+    }
+</script>
+
+</body>
+</html>

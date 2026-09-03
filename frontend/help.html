@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Help - Sunrise Dental</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
 </head>
+
 <body>
 
 <div class="sidebar">
+
     <div class="brand">Sunrise Dental</div>
+
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
@@ -21,84 +29,190 @@
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html" class="active">Help / Instructions</a></li>
     </ul>
-    <a href="index.html" class="logout-btn">Log Out</a>
+
+    <div class="theme-toggle">
+        <span>Light</span>
+
+        <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="slider"></span>
+        </label>
+
+        <span>Dark</span>
+    </div>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+
 </div>
 
+
 <div class="main-content">
+
     <div class="header">
         <div>
             <h1>Help &amp; Instructions</h1>
-            <p>Step-by-step guidance for new staff using the system.</p>
+            <p>Step-by-step guidance for staff using the system.</p>
         </div>
     </div>
 
+
     <div class="card-box">
+
         <div class="accordion-item">
+
             <div class="accordion-header" onclick="toggleItem(this)">
                 How do I register a new appointment?
                 <span class="icon">+</span>
             </div>
+
             <div class="accordion-body">
-                Go to "Register Appointment" in the sidebar. Fill in the patient's name, address, and contact number, choose a dentist and treatment type, then pick a date and time. Click "Register Appointment" - the system generates the appointment number automatically.
+                Go to "Register Appointment". Enter the patient name,
+                contact number and address, select a dentist and treatment,
+                then choose the appointment date and time.
+                Click "Register Appointment". The system automatically
+                generates a unique appointment number.
             </div>
+
         </div>
 
+
         <div class="accordion-item">
+
             <div class="accordion-header" onclick="toggleItem(this)">
-                How do I find an existing appointment?
+                How do I find or update an appointment?
                 <span class="icon">+</span>
             </div>
+
             <div class="accordion-body">
-                Go to "Search / Update", type the appointment number (e.g. APT00001) into the search box, and click Search. You can then edit the patient's details or cancel the appointment from the same screen.
+                Go to "Search / Update" and select the required appointment
+                from the appointment dropdown. The appointment details will
+                load automatically. Patient details, date and time can then
+                be updated, or the appointment can be cancelled.
             </div>
+
         </div>
 
+
         <div class="accordion-item">
+
             <div class="accordion-header" onclick="toggleItem(this)">
                 How do I generate a bill?
                 <span class="icon">+</span>
             </div>
+
             <div class="accordion-body">
-                Go to "Billing & Receipt", enter the appointment number, and click "Generate Bill". The total is calculated automatically from the treatment's consultation fee. Click "Print Receipt" to print it for the patient.
+                Go to "Billing & Receipt" and select an appointment from
+                the dropdown. Click "Generate Bill". The system calculates
+                the bill automatically and displays the receipt.
+                Click "Print Receipt" to print it.
             </div>
+
         </div>
 
+
         <div class="accordion-item">
+
             <div class="accordion-header" onclick="toggleItem(this)">
-                How do I add a new dentist or treatment? (Admin only)
+                How do I manage dentists and treatments? (Admin only)
                 <span class="icon">+</span>
             </div>
+
             <div class="accordion-body">
-                Go to "Manage Dentists" from the sidebar. Use the form under each table to add a new dentist or a new treatment with its consultation fee.
+                Go to "Manage Dentists". Administrators can add, edit or
+                delete dentists and treatments, and update consultation fees.
             </div>
+
         </div>
 
+
         <div class="accordion-item">
+
             <div class="accordion-header" onclick="toggleItem(this)">
-                How do I view clinic reports? (Admin only)
+                How do I view reports? (Admin only)
                 <span class="icon">+</span>
             </div>
+
             <div class="accordion-body">
-                Go to "Reports & Analytics", choose a date range and optionally a dentist, then click "Generate". You'll see total appointments, revenue, and a breakdown table to help with decision-making.
+                Go to "Reports & Analytics". Select a From Date, To Date
+                and optionally a dentist. Click "Generate" to view total
+                appointments, total revenue, busiest dentist, most booked
+                treatment and the appointment breakdown.
             </div>
+
         </div>
 
+
         <div class="accordion-item">
+
+            <div class="accordion-header" onclick="toggleItem(this)">
+                How do I send an appointment reminder?
+                <span class="icon">+</span>
+            </div>
+
+            <div class="accordion-body">
+                Go to "Notifications". Select an appointment, choose SMS
+                or Email, review or edit the automatically generated reminder
+                message, and click "Send Notification". The notification is
+                simulated and stored in the notification log.
+            </div>
+
+        </div>
+
+
+        <div class="accordion-item">
+
+            <div class="accordion-header" onclick="toggleItem(this)">
+                What happens if an appointment is cancelled?
+                <span class="icon">+</span>
+            </div>
+
+            <div class="accordion-body">
+                Cancelled appointments remain in the system for record
+                keeping but cannot be edited. They are also excluded from
+                normal billing and report calculations.
+            </div>
+
+        </div>
+
+
+        <div class="accordion-item">
+
             <div class="accordion-header" onclick="toggleItem(this)">
                 What do I do if the system shows a connection error?
                 <span class="icon">+</span>
             </div>
+
             <div class="accordion-body">
-                This means the backend server isn't running. Ask your IT administrator to start the Java server and confirm XAMPP's MySQL service is running before trying again.
+                Confirm that the Java backend server is running and that
+                MySQL is started in XAMPP. Then refresh the page and try again.
             </div>
+
         </div>
+
     </div>
+
 </div>
 
+
 <script>
-    function toggleItem(headerEl) {
-        headerEl.parentElement.classList.toggle('open');
+
+    function toggleItem(header) {
+
+        const item =
+            header.parentElement;
+
+        item.classList.toggle('open');
+
+        const icon =
+            header.querySelector('.icon');
+
+        icon.textContent =
+            item.classList.contains('open')
+                ? '−'
+                : '+';
     }
+
 </script>
+
 </body>
 </html>

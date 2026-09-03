@@ -10,9 +10,6 @@ import java.sql.SQLException;
 
 public class UserDAO {
 
-    // Looks up a user by username only - the password hash is verified
-    // separately in UserService, since verification needs the raw salt+hash
-    // comparison logic, not a plain SQL equality check.
     public User findByUsername(String username) {
         User user = null;
         String query = "SELECT * FROM users WHERE username = ?";
@@ -30,6 +27,7 @@ public class UserDAO {
                             rs.getString("password"),
                             rs.getString("role")
                     );
+                    user.setActive(rs.getBoolean("is_active"));
                 }
             }
         } catch (SQLException e) {

@@ -5,7 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager {
-    // token -> "username:role"
+
     private static final Map<String, String> sessions = new ConcurrentHashMap<>();
 
     public static String createSession(String username, String role) {
@@ -23,7 +23,14 @@ public class SessionManager {
         return value == null ? null : value.split(":")[1];
     }
 
+    public static String getUsername(String token) {
+        String value = sessions.get(token);
+        return value == null ? null : value.split(":")[0];
+    }
+
     public static void invalidate(String token) {
-        if (token != null) sessions.remove(token);
+        if (token != null) {
+            sessions.remove(token);
+        }
     }
 }
