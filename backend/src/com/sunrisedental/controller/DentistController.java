@@ -17,7 +17,7 @@ public class DentistController implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+
         exchange.getResponseHeaders().add("Content-Type", "application/json");
 
         String method = exchange.getRequestMethod();
@@ -78,7 +78,9 @@ public class DentistController implements HttpHandler {
         return sb.append("]").toString();
     }
 
-    private String nullSafe(String s) { return s == null ? "" : s; }
+    private String nullSafe(String s) {
+        return s == null ? "" : s;
+    }
 
     private String readRequestBody(HttpExchange exchange) throws IOException {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
