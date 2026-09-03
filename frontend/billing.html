@@ -3,22 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Billing - Sunrise Dental</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+
     <style>
-        .receipt { border: 1px dashed #ddd; padding: 25px; border-radius: 12px; }
-        .receipt-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
-        .receipt-total { display: flex; justify-content: space-between; padding: 16px 0 0 0; font-size: 18px; font-weight: 700; color: var(--primary-dark); }
+        .receipt {
+            border: 1px dashed #ddd;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .receipt-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
         @media print {
-            .sidebar, .search-row, .btn-primary, .header p { display: none !important; }
+            body * {
+                visibility: hidden;
+            }
+
+            .receipt, .receipt * {
+                visibility: visible;
+            }
+
+            .receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+            }
         }
     </style>
 </head>
+
 <body>
 
 <div class="sidebar">
+
     <div class="brand">Sunrise Dental</div>
+
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
@@ -29,71 +72,301 @@
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
-    <a href="index.html" class="logout-btn">Log Out</a>
+
+    <div class="theme-toggle">
+        <span>Light</span>
+
+        <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="slider"></span>
+        </label>
+
+        <span>Dark</span>
+    </div>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+
 </div>
 
+
 <div class="main-content">
+
     <div class="header">
         <div>
             <h1>Billing &amp; Receipt</h1>
-            <p>Generate and print a bill for a completed appointment.</p>
+            <p>Generate and print an appointment bill.</p>
         </div>
     </div>
+
 
     <div class="card-box">
+
         <div class="search-row">
-            <input type="text" id="searchInput" placeholder="Enter appointment number, e.g. APT00001">
-            <button class="btn-primary" onclick="loadBill()">Generate Bill</button>
+
+            <select id="appointmentSelect" style="width:100%;">
+                <option value="">Loading appointments...</option>
+            </select>
+
+            <button class="btn-primary" onclick="loadBill()">
+                Generate Bill
+            </button>
+
         </div>
+
     </div>
+
 
     <div class="card-box" id="billCard" style="display:none;">
+
         <div class="receipt">
-            <h3 style="margin-top:0;">Sunrise Dental Clinic - Receipt</h3>
-            <div class="receipt-row"><span>Appointment No</span><span id="bAppointmentNo"></span></div>
-            <div class="receipt-row"><span>Patient Name</span><span id="bPatientName"></span></div>
-            <div class="receipt-row"><span>Dentist</span><span id="bDentist"></span></div>
-            <div class="receipt-row"><span>Treatment</span><span id="bTreatment"></span></div>
-            <div class="receipt-row"><span>Date</span><span id="bDate"></span></div>
-            <div class="receipt-total"><span>Total Amount</span><span id="bTotal"></span></div>
+
+            <h3 style="margin-top:0;">
+                Sunrise Dental Clinic - Receipt
+            </h3>
+
+            <div class="receipt-row">
+                <span>Appointment No</span>
+                <span id="bAppointmentNo"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span>Patient Name</span>
+                <span id="bPatientName"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span>Dentist</span>
+                <span id="bDentist"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span>Treatment</span>
+                <span id="bTreatment"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span>Generated Date</span>
+                <span id="bDate"></span>
+            </div>
+
+            <div class="receipt-total">
+                <span>Total Amount</span>
+                <span id="bTotal"></span>
+            </div>
+
         </div>
-        <button class="btn-primary" style="margin-top:20px;" onclick="window.print()">Print Receipt</button>
+
+        <button
+                class="btn-primary"
+                style="margin-top:20px;"
+                onclick="window.print()"
+        >
+            Print Receipt
+        </button>
+
     </div>
+
 
     <div class="card-box empty-state" id="emptyState">
-        No bill loaded yet. Enter an appointment number above.
+        Select an appointment above to generate a bill.
     </div>
+
 </div>
 
+
 <script>
-    // Endpoint below (GET /bills/{appointmentId}) is what BillingController
-    // will expose - it also triggers the sp_generate_bill stored procedure.
 
-    function loadBill() {
-        const id = document.getElementById('searchInput').value.trim();
-        if (!id) return;
+    const API = 'http://localhost:8080';
 
-        fetch(`http://localhost:8080/bills/${id}`)
-            .then(res => {
-                if (!res.ok) throw new Error('Not found');
-                return res.json();
-            })
-            .then(data => {
-                document.getElementById('billCard').style.display = 'block';
-                document.getElementById('emptyState').style.display = 'none';
-                document.getElementById('bAppointmentNo').textContent = data.appointmentNo || id;
-                document.getElementById('bPatientName').textContent = data.patientName || '';
-                document.getElementById('bDentist').textContent = data.dentistName || '';
-                document.getElementById('bTreatment').textContent = data.treatmentName || '';
-                document.getElementById('bDate').textContent = data.generatedDate || '';
-                document.getElementById('bTotal').textContent = `Rs. ${data.totalAmount || '0.00'}`;
-            })
-            .catch(() => {
-                document.getElementById('billCard').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                document.getElementById('emptyState').textContent = 'No bill found for that appointment number.';
-            });
+
+    document.addEventListener('DOMContentLoaded', loadAppointments);
+
+
+    async function loadAppointments() {
+
+        const select =
+            document.getElementById('appointmentSelect');
+
+        try {
+
+            const res =
+                await authFetch(`${API}/appointments`);
+
+            const appointments =
+                await res.json();
+
+            if (!res.ok)
+                throw new Error();
+
+
+            select.innerHTML =
+                '<option value="">Select appointment</option>';
+
+
+            appointments
+                .filter(a =>
+                    String(a.status).toUpperCase() !== 'CANCELLED'
+                )
+                .forEach(a => {
+
+                    const option =
+                        document.createElement('option');
+
+                    option.value =
+                        a.appointmentNo;
+
+                    option.textContent =
+                        `${a.appointmentNo} - ${a.patientName} - ${a.appointmentDate}`;
+
+                    select.appendChild(option);
+                });
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            select.innerHTML =
+                '<option value="">Unable to load appointments</option>';
+        }
     }
+
+
+    async function loadBill() {
+
+        const appointmentNo =
+            document
+                .getElementById('appointmentSelect')
+                .value;
+
+
+        if (!appointmentNo) {
+
+            alert('Please select an appointment.');
+
+            return;
+        }
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/bills/${appointmentNo}`
+                );
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                showError(
+                    data.message ||
+                    'Unable to generate bill.'
+                );
+
+                return;
+            }
+
+
+            document
+                .getElementById('billCard')
+                .style.display =
+                'block';
+
+            document
+                .getElementById('emptyState')
+                .style.display =
+                'none';
+
+
+            document
+                .getElementById('bAppointmentNo')
+                .textContent =
+                data.appointmentNo || '';
+
+
+            document
+                .getElementById('bPatientName')
+                .textContent =
+                data.patientName || '';
+
+
+            document
+                .getElementById('bDentist')
+                .textContent =
+                data.dentistName || '';
+
+
+            document
+                .getElementById('bTreatment')
+                .textContent =
+                data.treatmentName || '';
+
+
+            document
+                .getElementById('bDate')
+                .textContent =
+                formatDate(data.generatedDate);
+
+
+            document
+                .getElementById('bTotal')
+                .textContent =
+                `Rs. ${Number(data.totalAmount || 0).toLocaleString(
+                    undefined,
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                )}`;
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            showError(
+                'Unable to connect to the server.'
+            );
+        }
+    }
+
+
+    function showError(message) {
+
+        document
+            .getElementById('billCard')
+            .style.display =
+            'none';
+
+
+        const empty =
+            document.getElementById('emptyState');
+
+        empty.style.display =
+            'block';
+
+        empty.textContent =
+            message;
+    }
+
+
+    function formatDate(value) {
+
+        if (!value)
+            return '';
+
+        const date =
+            new Date(value);
+
+        return isNaN(date)
+            ? value
+            : date.toLocaleString();
+    }
+
 </script>
+
 </body>
 </html>

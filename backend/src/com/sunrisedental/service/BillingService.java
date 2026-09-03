@@ -6,15 +6,47 @@ import com.sunrisedental.model.Bill;
 import java.sql.SQLException;
 
 public class BillingService {
-    private BillDAO billDAO = new BillDAO();
 
-    // If a bill already exists for this appointment, return it.
-    // Otherwise call the stored procedure to generate one, then return it.
-    public Bill getOrGenerateBill(String appointmentNo) throws SQLException {
-        Bill existing = billDAO.findByAppointmentNo(appointmentNo);
-        if (existing != null) return existing;
+    private final BillDAO billDAO =
+            new BillDAO();
 
-        billDAO.generateBill(appointmentNo);
-        return billDAO.findByAppointmentNo(appointmentNo);
+
+    public Bill getOrGenerateBill(
+            String appointmentNo
+    ) throws SQLException {
+
+        if (appointmentNo == null
+                || appointmentNo.trim().isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "Appointment number is required."
+            );
+        }
+
+
+        appointmentNo =
+                appointmentNo.trim();
+
+
+        Bill existing =
+                billDAO.findByAppointmentNo(
+                        appointmentNo
+                );
+
+
+        if (existing != null) {
+
+            return existing;
+        }
+
+
+        billDAO.generateBill(
+                appointmentNo
+        );
+
+
+        return billDAO.findByAppointmentNo(
+                appointmentNo
+        );
     }
 }

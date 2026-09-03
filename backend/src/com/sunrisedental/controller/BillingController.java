@@ -11,48 +11,156 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
 public class BillingController implements HttpHandler {
-    private BillingService billingService = new BillingService();
+
+    private final BillingService billingService =
+            new BillingService();
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange)
+            throws IOException {
 
-        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.getResponseHeaders().set(
+                "Content-Type",
+                "application/json; charset=UTF-8"
+        );
 
-        String method = exchange.getRequestMethod();
-        String path = exchange.getRequestURI().getPath(); // /bills/APT00001
-        String[] parts = path.split("/");
-        String appointmentNo = parts.length > 2 ? parts[2] : null;
+        String method =
+                exchange.getRequestMethod();
 
-        if (!"GET".equals(method) || appointmentNo == null) {
-            sendResponse(exchange, 405, "{\"status\":\"error\",\"message\":\"Method not allowed\"}");
+        String[] parts =
+                exchange.getRequestURI()
+                        .getPath()
+                        .split("/");
+
+        String appointmentNo =
+                parts.length > 2 &&
+                        !parts[2].isBlank()
+                        ? parts[2]
+                        : null;
+
+
+        if (!"GET".equalsIgnoreCase(method)
+                || appointmentNo == null) {
+
+            sendResponse(
+                    exchange,
+                    405,
+                    "{\"status\":\"error\",\"message\":\"Method not allowed\"}"
+            );
+
             return;
         }
 
+
         try {
-            Bill bill = billingService.getOrGenerateBill(appointmentNo);
-            sendResponse(exchange, 200, toJson(bill));
+
+            Bill bill =
+                    billingService
+                            .getOrGenerateBill(
+                                    appointmentNo
+                            );
+
+
+            if (bill == null) {
+
+                sendResponse(
+                        exchange,
+                        404,
+                        "{\"status\":\"error\",\"message\":\"Bill could not be generated\"}"
+                );
+
+                return;
+            }
+
+
+            sendResponse(
+                    exchange,
+                    200,
+                    toJson(bill)
+            );
+
+
+        } catch (IllegalArgumentException e) {
+
+            sendResponse(
+                    exchange,
+                    400,
+                    "{\"status\":\"error\",\"message\":\""
+                            + escapeJson(e.getMessage())
+                            + "\"}"
+            );
+
+
         } catch (SQLException e) {
-            sendResponse(exchange, 404, "{\"status\":\"error\",\"message\":\"" + e.getMessage().replace("\"", "'") + "\"}");
+
+            e.printStackTrace();
+
+            sendResponse(
+                    exchange,
+                    400,
+                    "{\"status\":\"error\",\"message\":\""
+                            + escapeJson(e.getMessage())
+                            + "\"}"
+            );
         }
     }
 
+
     private String toJson(Bill b) {
+
         return "{"
-                + "\"appointmentNo\":\"" + nullSafe(b.getAppointmentNo()) + "\","
-                + "\"patientName\":\"" + nullSafe(b.getPatientName()) + "\","
-                + "\"dentistName\":\"" + nullSafe(b.getDentistName()) + "\","
-                + "\"treatmentName\":\"" + nullSafe(b.getTreatmentName()) + "\","
-                + "\"totalAmount\":" + b.getTotalAmount() + ","
-                + "\"generatedDate\":\"" + nullSafe(b.getGeneratedDate()) + "\""
+                + "\"appointmentNo\":\""
+                + escapeJson(b.getAppointmentNo()) + "\","
+
+                + "\"patientName\":\""
+                + escapeJson(b.getPatientName()) + "\","
+
+                + "\"dentistName\":\""
+                + escapeJson(b.getDentistName()) + "\","
+
+                + "\"treatmentName\":\""
+                + escapeJson(b.getTreatmentName()) + "\","
+
+                + "\"totalAmount\":"
+                + b.getTotalAmount() + ","
+
+                + "\"generatedDate\":\""
+                + escapeJson(b.getGeneratedDate()) + "\""
+
                 + "}";
     }
 
-    private String nullSafe(String s) { return s == null ? "" : s; }
 
-    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-        exchange.sendResponseHeaders(statusCode, bytes.length);
-        try (OutputStream os = exchange.getResponseBody()) {
+    private String escapeJson(String value) {
+
+        if (value == null)
+            return "";
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+    }
+
+
+    private void sendResponse(
+            HttpExchange exchange,
+            int status,
+            String response
+    ) throws IOException {
+
+        byte[] bytes =
+                response.getBytes(
+                        StandardCharsets.UTF_8
+                );
+
+        exchange.sendResponseHeaders(
+                status,
+                bytes.length
+        );
+
+        try (OutputStream os =
+                     exchange.getResponseBody()) {
+
             os.write(bytes);
         }
     }
