@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Notifications - Sunrise Dental</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
 </head>
+
 <body>
 
 <div class="sidebar">
+
     <div class="brand">Sunrise Dental</div>
+
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
@@ -21,83 +29,472 @@
         <li><a href="notifications.html" class="active">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
-    <a href="index.html" class="logout-btn">Log Out</a>
+
+    <div class="theme-toggle">
+        <span>Light</span>
+
+        <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="slider"></span>
+        </label>
+
+        <span>Dark</span>
+    </div>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+
 </div>
 
+
 <div class="main-content">
+
     <div class="header">
         <div>
             <h1>Notifications</h1>
-            <p>Simulated email/SMS alerts sent to patients for appointment reminders.</p>
+            <p>Simulated email/SMS appointment reminders for patients.</p>
         </div>
     </div>
 
+
     <div class="card-box">
+
         <h3>Send a Notification</h3>
+
         <div class="form-grid">
+
             <div class="form-group">
-                <label>Appointment No</label>
-                <input type="text" id="notifyAppointmentNo" placeholder="e.g. APT00001">
+                <label>Appointment</label>
+
+                <select
+                        id="notifyAppointmentNo"
+                        onchange="generateMessage()">
+
+                    <option value="">
+                        Loading appointments...
+                    </option>
+
+                </select>
             </div>
+
+
             <div class="form-group">
+
                 <label>Channel</label>
+
                 <select id="notifyChannel">
                     <option value="SMS">SMS</option>
                     <option value="EMAIL">Email</option>
                 </select>
+
             </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
+
+
+            <div
+                    class="form-group"
+                    style="grid-column:1 / -1;">
+
                 <label>Message</label>
-                <input type="text" id="notifyMessage" placeholder="e.g. Your appointment is confirmed for tomorrow at 9 AM">
+
+                <input
+                        type="text"
+                        id="notifyMessage"
+                        maxlength="500"
+                        placeholder="Enter appointment reminder message">
+
             </div>
+
         </div>
-        <button class="btn-primary" onclick="sendNotification()">Send Notification</button>
+
+
+        <button
+                class="btn-primary"
+                id="sendBtn"
+                onclick="sendNotification()">
+
+            Send Notification
+
+        </button>
+
     </div>
+
 
     <div class="card-box">
+
         <h3>Notification Log</h3>
+
         <table>
-            <thead><tr><th>Appointment No</th><th>Channel</th><th>Message</th><th>Sent At</th></tr></thead>
+
+            <thead>
+            <tr>
+                <th>Appointment No</th>
+                <th>Channel</th>
+                <th>Message</th>
+                <th>Sent At</th>
+            </tr>
+            </thead>
+
             <tbody id="notificationRows">
-            <tr><td colspan="4" class="empty-state">No notifications sent yet.</td></tr>
+
+            <tr>
+                <td colspan="4" class="empty-state">
+                    Loading notifications...
+                </td>
+            </tr>
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
+
 <script>
-    // NotificationController will expose POST /notifications (to send + log one)
-    // and GET /notifications (to list the log below). This simulates real
-    // email/SMS sending by writing a row to the notifications table.
 
-    function sendNotification() {
-        const appointmentNo = document.getElementById('notifyAppointmentNo').value;
-        const channel = document.getElementById('notifyChannel').value;
-        const message = document.getElementById('notifyMessage').value;
-        if (!appointmentNo || !message) return;
+    const API = 'http://localhost:8080';
 
-        fetch('http://localhost:8080/notifications', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appointmentNo, channel, message })
-        })
-        .then(() => loadNotifications())
-        .catch(() => alert('Backend endpoint not built yet.'));
+    let appointments = [];
+
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        () => {
+
+            loadAppointments();
+            loadNotifications();
+        }
+    );
+
+
+    async function loadAppointments() {
+
+        const select =
+            document.getElementById(
+                'notifyAppointmentNo'
+            );
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/appointments`
+                );
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok)
+                throw new Error();
+
+
+            appointments =
+                data.filter(a =>
+                    String(a.status).toUpperCase()
+                    !== 'CANCELLED'
+                );
+
+
+            select.innerHTML =
+                '<option value="">Select appointment</option>';
+
+
+            appointments.forEach(a => {
+
+                const option =
+                    document.createElement(
+                        'option'
+                    );
+
+                option.value =
+                    a.appointmentNo;
+
+                option.textContent =
+                    `${a.appointmentNo} - ${a.patientName} - ${a.appointmentDate}`;
+
+                select.appendChild(option);
+            });
+
+
+            if (!appointments.length) {
+
+                select.innerHTML =
+                    '<option value="">No appointments available</option>';
+            }
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            select.innerHTML =
+                '<option value="">Unable to load appointments</option>';
+        }
     }
 
-    function loadNotifications() {
-        fetch('http://localhost:8080/notifications')
-            .then(res => res.json())
-            .then(data => {
-                const rows = (data || []).map(n => `
+
+    function generateMessage() {
+
+        const appointmentNo =
+            document.getElementById(
+                'notifyAppointmentNo'
+            ).value;
+
+
+        const appointment =
+            appointments.find(
+                a =>
+                    a.appointmentNo ===
+                    appointmentNo
+            );
+
+
+        if (!appointment)
+            return;
+
+
+        const time =
+            (appointment.appointmentTime || '')
+                .substring(0, 5);
+
+
+        document.getElementById(
+            'notifyMessage'
+        ).value =
+            `Reminder: Your dental appointment is scheduled for ${appointment.appointmentDate} at ${time}.`;
+    }
+
+
+    async function sendNotification() {
+
+        const appointmentNo =
+            document.getElementById(
+                'notifyAppointmentNo'
+            ).value;
+
+
+        const channel =
+            document.getElementById(
+                'notifyChannel'
+            ).value;
+
+
+        const message =
+            document.getElementById(
+                'notifyMessage'
+            ).value.trim();
+
+
+        if (!appointmentNo) {
+
+            alert(
+                'Please select an appointment.'
+            );
+
+            return;
+        }
+
+
+        if (!message) {
+
+            alert(
+                'Please enter a message.'
+            );
+
+            return;
+        }
+
+
+        if (message.length > 500) {
+
+            alert(
+                'Message is too long.'
+            );
+
+            return;
+        }
+
+
+        const btn =
+            document.getElementById(
+                'sendBtn'
+            );
+
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/notifications`,
+                    {
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type':
+                                'application/json'
+                        },
+
+                        body:
+                            JSON.stringify({
+                                appointmentNo,
+                                channel,
+                                message
+                            })
+                    }
+                );
+
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                alert(
+                    data.message ||
+                    'Unable to send notification.'
+                );
+
+                return;
+            }
+
+
+            alert(
+                'Notification sent successfully.'
+            );
+
+
+            document.getElementById(
+                'notifyMessage'
+            ).value = '';
+
+
+            document.getElementById(
+                'notifyAppointmentNo'
+            ).value = '';
+
+
+            await loadNotifications();
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to connect to the server.'
+            );
+
+
+        } finally {
+
+            btn.disabled = false;
+
+            btn.textContent =
+                'Send Notification';
+        }
+    }
+
+
+    async function loadNotifications() {
+
+        const rows =
+            document.getElementById(
+                'notificationRows'
+            );
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/notifications`
+                );
+
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok)
+                throw new Error();
+
+
+            if (!data.length) {
+
+                rows.innerHTML =
+                    '<tr><td colspan="4" class="empty-state">No notifications sent yet.</td></tr>';
+
+                return;
+            }
+
+
+            rows.innerHTML =
+                data.map(n => `
+
                     <tr>
-                        <td>${n.appointmentNo}</td><td>${n.channel}</td>
-                        <td>${n.message}</td><td>${n.sentAt}</td>
-                    </tr>`).join('');
-                document.getElementById('notificationRows').innerHTML = rows || '<tr><td colspan="4" class="empty-state">No notifications sent yet.</td></tr>';
-            })
-            .catch(() => {});
+
+                        <td>
+                            ${escapeHtml(n.appointmentNo)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(n.channel)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(n.message)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(formatDate(n.sentAt))}
+                        </td>
+
+                    </tr>
+
+                `).join('');
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            rows.innerHTML =
+                '<tr><td colspan="4" class="empty-state">Unable to load notifications.</td></tr>';
+        }
     }
+
+
+    function formatDate(value) {
+
+        if (!value)
+            return '';
+
+        const date =
+            new Date(value);
+
+        return isNaN(date)
+            ? value
+            : date.toLocaleString();
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+    }
+
 </script>
+
 </body>
 </html>
