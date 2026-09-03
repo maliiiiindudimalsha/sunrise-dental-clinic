@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sunrisedental.model.Dentist;
 import com.sunrisedental.service.DentistService;
+import com.sunrisedental.util.SessionManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -13,94 +14,388 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DentistController implements HttpHandler {
-    private DentistService dentistService = new DentistService();
+
+    private final DentistService dentistService =
+            new DentistService();
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange)
+            throws IOException {
 
-        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.getResponseHeaders().set(
+                "Content-Type",
+                "application/json; charset=UTF-8"
+        );
 
-        String method = exchange.getRequestMethod();
-        String path = exchange.getRequestURI().getPath(); // /dentists  or  /dentists/3
-        String[] parts = path.split("/");
-        Integer id = (parts.length > 2 && !parts[2].isEmpty()) ? Integer.parseInt(parts[2]) : null;
+        String method =
+                exchange.getRequestMethod();
+
+        String[] parts =
+                exchange.getRequestURI()
+                        .getPath()
+                        .split("/");
+
+        Integer id = null;
 
         try {
-            if ("GET".equals(method) && id == null) {
-                sendResponse(exchange, 200, toJsonArray(dentistService.getAll()));
-            } else if ("POST".equals(method) && id == null) {
-                handleAdd(exchange);
-            } else if ("PUT".equals(method) && id != null) {
-                handleUpdate(exchange, id);
-            } else if ("DELETE".equals(method) && id != null) {
-                boolean ok = dentistService.delete(id);
-                sendResponse(exchange, ok ? 200 : 404, ok
-                        ? "{\"status\":\"success\"}" : "{\"status\":\"error\",\"message\":\"Not found\"}");
-            } else {
-                sendResponse(exchange, 405, "{\"status\":\"error\",\"message\":\"Method not allowed\"}");
+
+            if (parts.length > 2 &&
+                    !parts[2].isBlank()) {
+
+                id =
+                        Integer.parseInt(
+                                parts[2]
+                        );
             }
+
+
+            if ("GET".equalsIgnoreCase(method)
+                    && id == null) {
+
+                sendResponse(
+                        exchange,
+                        200,
+                        toJsonArray(
+                                dentistService.getAll()
+                        )
+                );
+
+                return;
+            }
+
+
+            if (!isAdmin(exchange)) {
+
+                sendResponse(
+                        exchange,
+                        403,
+                        "{\"status\":\"error\",\"message\":\"Admin access required\"}"
+                );
+
+                return;
+            }
+
+
+            if ("POST".equalsIgnoreCase(method)
+                    && id == null) {
+
+                handleAdd(exchange);
+
+            } else if ("PUT".equalsIgnoreCase(method)
+                    && id != null) {
+
+                handleUpdate(
+                        exchange,
+                        id
+                );
+
+            } else if ("DELETE".equalsIgnoreCase(method)
+                    && id != null) {
+
+                boolean deleted =
+                        dentistService.delete(id);
+
+                sendResponse(
+                        exchange,
+                        deleted ? 200 : 404,
+                        deleted
+                                ? "{\"status\":\"success\",\"message\":\"Dentist deleted successfully\"}"
+                                : "{\"status\":\"error\",\"message\":\"Dentist not found\"}"
+                );
+
+            } else {
+
+                sendResponse(
+                        exchange,
+                        405,
+                        "{\"status\":\"error\",\"message\":\"Method not allowed\"}"
+                );
+            }
+
+
+        } catch (NumberFormatException e) {
+
+            sendResponse(
+                    exchange,
+                    400,
+                    "{\"status\":\"error\",\"message\":\"Invalid dentist ID\"}"
+            );
+
+
+        } catch (IllegalArgumentException e) {
+
+            sendResponse(
+                    exchange,
+                    400,
+                    "{\"status\":\"error\",\"message\":\""
+                            + escapeJson(e.getMessage())
+                            + "\"}"
+            );
+
+
         } catch (SQLException e) {
-            sendResponse(exchange, 500, "{\"status\":\"error\",\"message\":\"" + e.getMessage().replace("\"", "'") + "\"}");
+
+            e.printStackTrace();
+
+            sendResponse(
+                    exchange,
+                    400,
+                    "{\"status\":\"error\",\"message\":\""
+                            + escapeJson(
+                            databaseMessage(e)
+                    )
+                            + "\"}"
+            );
         }
     }
 
-    private void handleAdd(HttpExchange exchange) throws IOException, SQLException {
-        String body = readRequestBody(exchange);
-        Dentist d = new Dentist();
-        d.setName(extractJsonValue(body, "name"));
-        d.setSpecialization(extractJsonValue(body, "specialization"));
-        Dentist saved = dentistService.add(d);
-        sendResponse(exchange, 200, toJson(saved));
+
+    private void handleAdd(
+            HttpExchange exchange
+    ) throws IOException, SQLException {
+
+        String body =
+                readRequestBody(exchange);
+
+        Dentist dentist =
+                new Dentist();
+
+        dentist.setName(
+                extractJsonValue(
+                        body,
+                        "name"
+                )
+        );
+
+        dentist.setSpecialization(
+                extractJsonValue(
+                        body,
+                        "specialization"
+                )
+        );
+
+
+        Dentist saved =
+                dentistService.add(
+                        dentist
+                );
+
+
+        sendResponse(
+                exchange,
+                200,
+                toJson(saved)
+        );
     }
 
-    private void handleUpdate(HttpExchange exchange, int id) throws IOException, SQLException {
-        String body = readRequestBody(exchange);
-        Dentist d = new Dentist();
-        d.setName(extractJsonValue(body, "name"));
-        d.setSpecialization(extractJsonValue(body, "specialization"));
-        boolean ok = dentistService.update(id, d);
-        sendResponse(exchange, ok ? 200 : 404, ok
-                ? "{\"status\":\"success\"}" : "{\"status\":\"error\",\"message\":\"Not found\"}");
+
+    private void handleUpdate(
+            HttpExchange exchange,
+            int id
+    ) throws IOException, SQLException {
+
+        String body =
+                readRequestBody(exchange);
+
+        Dentist dentist =
+                new Dentist();
+
+        dentist.setName(
+                extractJsonValue(
+                        body,
+                        "name"
+                )
+        );
+
+        dentist.setSpecialization(
+                extractJsonValue(
+                        body,
+                        "specialization"
+                )
+        );
+
+
+        boolean updated =
+                dentistService.update(
+                        id,
+                        dentist
+                );
+
+
+        sendResponse(
+                exchange,
+                updated ? 200 : 404,
+                updated
+                        ? "{\"status\":\"success\",\"message\":\"Dentist updated successfully\"}"
+                        : "{\"status\":\"error\",\"message\":\"Dentist not found\"}"
+        );
     }
 
-    private String toJson(Dentist d) {
-        return "{\"dentistId\":" + d.getDentistId()
-                + ",\"name\":\"" + nullSafe(d.getName())
-                + "\",\"specialization\":\"" + nullSafe(d.getSpecialization()) + "\"}";
+
+    private boolean isAdmin(
+            HttpExchange exchange
+    ) {
+
+        String token =
+                exchange
+                        .getRequestHeaders()
+                        .getFirst(
+                                "X-Auth-Token"
+                        );
+
+        return "ADMIN".equalsIgnoreCase(
+                SessionManager.getRole(token)
+        );
     }
 
-    private String toJsonArray(List<Dentist> list) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < list.size(); i++) {
-            sb.append(toJson(list.get(i)));
-            if (i < list.size() - 1) sb.append(",");
+
+    private String toJson(
+            Dentist dentist
+    ) {
+
+        return "{"
+                + "\"dentistId\":"
+                + dentist.getDentistId()
+                + ",\"name\":\""
+                + escapeJson(
+                dentist.getName()
+        )
+                + "\",\"specialization\":\""
+                + escapeJson(
+                dentist.getSpecialization()
+        )
+                + "\"}";
+    }
+
+
+    private String toJsonArray(
+            List<Dentist> list
+    ) {
+
+        StringBuilder json =
+                new StringBuilder("[");
+
+        for (int i = 0;
+             i < list.size();
+             i++) {
+
+            json.append(
+                    toJson(
+                            list.get(i)
+                    )
+            );
+
+            if (i < list.size() - 1) {
+                json.append(",");
+            }
         }
-        return sb.append("]").toString();
+
+        return json.append("]").toString();
     }
 
-    private String nullSafe(String s) {
-        return s == null ? "" : s;
-    }
 
-    private String readRequestBody(HttpExchange exchange) throws IOException {
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
+    private String readRequestBody(
+            HttpExchange exchange
+    ) throws IOException {
+
+        ByteArrayOutputStream result =
+                new ByteArrayOutputStream();
+
+        byte[] buffer =
+                new byte[1024];
+
         int length;
-        try (InputStream is = exchange.getRequestBody()) {
-            while ((length = is.read(buffer)) != -1) result.write(buffer, 0, length);
+
+
+        try (InputStream is =
+                     exchange.getRequestBody()) {
+
+            while ((length =
+                    is.read(buffer))
+                    != -1) {
+
+                result.write(
+                        buffer,
+                        0,
+                        length
+                );
+            }
         }
-        return result.toString(StandardCharsets.UTF_8);
+
+
+        return result.toString(
+                StandardCharsets.UTF_8
+        );
     }
 
-    private String extractJsonValue(String json, String key) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"?([^\",}]*)\"?").matcher(json);
-        return m.find() ? m.group(1).trim() : null;
+
+    private String extractJsonValue(
+            String json,
+            String key
+    ) {
+
+        Matcher matcher =
+                Pattern.compile(
+                        "\""
+                                + Pattern.quote(key)
+                                + "\"\\s*:\\s*\"?([^\",}]*)\"?"
+                ).matcher(json);
+
+
+        return matcher.find()
+                ? matcher.group(1).trim()
+                : null;
     }
 
-    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-        exchange.sendResponseHeaders(statusCode, bytes.length);
-        try (OutputStream os = exchange.getResponseBody()) {
+
+    private String escapeJson(String value) {
+
+        if (value == null)
+            return "";
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+    }
+
+
+    private String databaseMessage(
+            SQLException e
+    ) {
+
+        if (e.getMessage() != null &&
+                e.getMessage()
+                        .toLowerCase()
+                        .contains(
+                                "foreign key"
+                        )) {
+
+            return "This dentist is already used by an appointment and cannot be deleted.";
+        }
+
+        return e.getMessage();
+    }
+
+
+    private void sendResponse(
+            HttpExchange exchange,
+            int status,
+            String response
+    ) throws IOException {
+
+        byte[] bytes =
+                response.getBytes(
+                        StandardCharsets.UTF_8
+                );
+
+        exchange.sendResponseHeaders(
+                status,
+                bytes.length
+        );
+
+        try (OutputStream os =
+                     exchange.getResponseBody()) {
+
             os.write(bytes);
         }
     }

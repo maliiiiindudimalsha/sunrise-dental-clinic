@@ -3,15 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Manage Dentists & Treatments - Sunrise Dental</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+
     <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
 </head>
+
 <body>
 
 <div class="sidebar">
+
     <div class="brand">Sunrise Dental</div>
+
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
@@ -22,18 +29,25 @@
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
+
     <div class="theme-toggle">
         <span>Light</span>
+
         <label class="switch">
             <input type="checkbox" id="themeSwitch">
             <span class="slider"></span>
         </label>
+
         <span>Dark</span>
     </div>
-    <a href="index.html" class="logout-btn">Log Out</a>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+
 </div>
 
+
 <div class="main-content">
+
     <div class="header">
         <div>
             <h1>Manage Dentists &amp; Treatments</h1>
@@ -41,116 +55,662 @@
         </div>
     </div>
 
+
+    <!-- DENTISTS -->
     <div class="card-box">
+
         <h3>Dentists</h3>
+
         <table>
-            <thead><tr><th>Name</th><th>Specialization</th><th></th></tr></thead>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
             <tbody id="dentistRows">
-            <tr><td colspan="3" class="empty-state">Loading...</td></tr>
+            <tr>
+                <td colspan="3" class="empty-state">Loading...</td>
+            </tr>
             </tbody>
         </table>
+
+
         <div class="form-grid" style="margin-top:20px;">
-            <div class="form-group"><label>Dentist Name</label><input type="text" id="newDentistName"></div>
-            <div class="form-group"><label>Specialization</label><input type="text" id="newDentistSpec"></div>
+
+            <div class="form-group">
+                <label>Dentist Name</label>
+                <input type="text" id="dentistName" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" id="dentistSpec" maxlength="100">
+            </div>
+
         </div>
-        <button class="btn-primary" onclick="addDentist()">Add Dentist</button>
+
+        <button
+                class="btn-primary"
+                id="dentistBtn"
+                onclick="saveDentist()">
+            Add Dentist
+        </button>
+
+        <button
+                class="btn-secondary"
+                id="dentistCancelBtn"
+                style="display:none;"
+                onclick="cancelDentistEdit()">
+            Cancel Edit
+        </button>
+
     </div>
 
+
+    <!-- TREATMENTS -->
     <div class="card-box">
+
         <h3>Treatments &amp; Fees</h3>
+
         <table>
-            <thead><tr><th>Treatment</th><th>Consultation Fee</th><th></th></tr></thead>
+            <thead>
+            <tr>
+                <th>Treatment</th>
+                <th>Consultation Fee</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
             <tbody id="treatmentRows">
-            <tr><td colspan="3" class="empty-state">Loading...</td></tr>
+            <tr>
+                <td colspan="3" class="empty-state">Loading...</td>
+            </tr>
             </tbody>
         </table>
+
+
         <div class="form-grid" style="margin-top:20px;">
-            <div class="form-group"><label>Treatment Name</label><input type="text" id="newTreatmentName"></div>
-            <div class="form-group"><label>Consultation Fee (Rs.)</label><input type="number" id="newTreatmentFee"></div>
+
+            <div class="form-group">
+                <label>Treatment Name</label>
+                <input type="text" id="treatmentName" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label>Consultation Fee (Rs.)</label>
+                <input
+                        type="number"
+                        id="treatmentFee"
+                        min="0"
+                        step="0.01">
+            </div>
+
         </div>
-        <button class="btn-primary" onclick="addTreatment()">Add Treatment</button>
+
+        <button
+                class="btn-primary"
+                id="treatmentBtn"
+                onclick="saveTreatment()">
+            Add Treatment
+        </button>
+
+        <button
+                class="btn-secondary"
+                id="treatmentCancelBtn"
+                style="display:none;"
+                onclick="cancelTreatmentEdit()">
+            Cancel Edit
+        </button>
+
     </div>
+
 </div>
 
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+
+    const API = 'http://localhost:8080';
+
+    let editingDentistId = null;
+    let editingTreatmentId = null;
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        if (
+            String(localStorage.getItem('role')).toUpperCase()
+            !== 'ADMIN'
+        ) {
+
+            alert('Admin access only.');
+            location.href = 'dashboard.html';
+            return;
+        }
+
         loadDentists();
         loadTreatments();
     });
 
-    function loadDentists() {
-        fetch('http://localhost:8080/dentists')
-            .then(res => res.json())
-            .then(data => {
-                const rows = (data || []).map(d => `
+
+    async function loadDentists() {
+
+        const rows =
+            document.getElementById('dentistRows');
+
+        try {
+
+            const res =
+                await authFetch(`${API}/dentists`);
+
+            const data =
+                await res.json();
+
+            if (!res.ok)
+                throw new Error();
+
+
+            if (!data.length) {
+
+                rows.innerHTML =
+                    '<tr><td colspan="3" class="empty-state">No dentists available.</td></tr>';
+
+                return;
+            }
+
+
+            rows.innerHTML =
+                data.map(d => `
                     <tr>
-                        <td>${d.name}</td><td>${d.specialization}</td>
-                        <td><button class="btn-secondary" onclick="deleteDentist(${d.dentistId})">Delete</button></td>
-                    </tr>`).join('');
-                document.getElementById('dentistRows').innerHTML = rows || '<tr><td colspan="3" class="empty-state">No dentists yet.</td></tr>';
-            })
-            .catch(() => {
-                document.getElementById('dentistRows').innerHTML = '<tr><td colspan="3" class="empty-state">Backend endpoint not built yet.</td></tr>';
-            });
+                        <td>${escapeHtml(d.name)}</td>
+
+                        <td>
+                            ${escapeHtml(d.specialization || '-')}
+                        </td>
+
+                        <td>
+                            <button
+                                class="btn-secondary"
+                                onclick='editDentist(
+                                    ${d.dentistId},
+                                    ${JSON.stringify(d.name)},
+                                    ${JSON.stringify(d.specialization || '')}
+                                )'>
+                                Edit
+                            </button>
+
+                            <button
+                                class="btn-secondary"
+                                onclick="deleteDentist(${d.dentistId})">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            rows.innerHTML =
+                '<tr><td colspan="3" class="empty-state">Unable to load dentists.</td></tr>';
+        }
     }
 
-    function loadTreatments() {
-        fetch('http://localhost:8080/treatments')
-            .then(res => res.json())
-            .then(data => {
-                const rows = (data || []).map(t => `
-                    <tr>
-                        <td>${t.treatmentName}</td><td>Rs. ${t.consultationFee}</td>
-                        <td><button class="btn-secondary" onclick="deleteTreatment(${t.treatmentId})">Delete</button></td>
-                    </tr>`).join('');
-                document.getElementById('treatmentRows').innerHTML = rows || '<tr><td colspan="3" class="empty-state">No treatments yet.</td></tr>';
-            })
-            .catch(() => {
-                document.getElementById('treatmentRows').innerHTML = '<tr><td colspan="3" class="empty-state">Backend endpoint not built yet.</td></tr>';
-            });
-    }
 
-    function addDentist() {
-        const name = document.getElementById('newDentistName').value;
-        const spec = document.getElementById('newDentistSpec').value;
-        if (!name) return;
+    async function saveDentist() {
 
-        fetch('http://localhost:8080/dentists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, specialization: spec })
-        }).then(() => {
-            document.getElementById('newDentistName').value = '';
-            document.getElementById('newDentistSpec').value = '';
+        const name =
+            document.getElementById('dentistName')
+                .value.trim();
+
+        const specialization =
+            document.getElementById('dentistSpec')
+                .value.trim();
+
+
+        if (name.length < 2) {
+
+            alert('Please enter a valid dentist name.');
+            return;
+        }
+
+
+        try {
+
+            const url =
+                editingDentistId
+                    ? `${API}/dentists/${editingDentistId}`
+                    : `${API}/dentists`;
+
+            const method =
+                editingDentistId
+                    ? 'PUT'
+                    : 'POST';
+
+
+            const res =
+                await authFetch(url, {
+
+                    method,
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+                            name,
+                            specialization
+                        })
+                });
+
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                alert(
+                    data.message ||
+                    'Unable to save dentist.'
+                );
+
+                return;
+            }
+
+
+            alert(
+                editingDentistId
+                    ? 'Dentist updated successfully.'
+                    : 'Dentist added successfully.'
+            );
+
+
+            cancelDentistEdit();
             loadDentists();
-        }).catch(() => alert('Backend endpoint not built yet.'));
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to connect to the server.'
+            );
+        }
     }
 
-    function addTreatment() {
-        const name = document.getElementById('newTreatmentName').value;
-        const fee = document.getElementById('newTreatmentFee').value;
-        if (!name || !fee) return;
 
-        fetch('http://localhost:8080/treatments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ treatmentName: name, consultationFee: fee })
-        }).then(() => {
-            document.getElementById('newTreatmentName').value = '';
-            document.getElementById('newTreatmentFee').value = '';
+    function editDentist(id, name, specialization) {
+
+        editingDentistId = id;
+
+        document.getElementById('dentistName').value =
+            name;
+
+        document.getElementById('dentistSpec').value =
+            specialization;
+
+        document.getElementById('dentistBtn').textContent =
+            'Update Dentist';
+
+        document.getElementById('dentistCancelBtn').style.display =
+            'inline-block';
+    }
+
+
+    function cancelDentistEdit() {
+
+        editingDentistId = null;
+
+        document.getElementById('dentistName').value = '';
+        document.getElementById('dentistSpec').value = '';
+
+        document.getElementById('dentistBtn').textContent =
+            'Add Dentist';
+
+        document.getElementById('dentistCancelBtn').style.display =
+            'none';
+    }
+
+
+    async function deleteDentist(id) {
+
+        if (!confirm('Delete this dentist?'))
+            return;
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/dentists/${id}`,
+                    {
+                        method: 'DELETE'
+                    }
+                );
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                alert(
+                    data.message ||
+                    'Unable to delete dentist.'
+                );
+
+                return;
+            }
+
+
+            alert(
+                'Dentist deleted successfully.'
+            );
+
+            loadDentists();
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to delete dentist.'
+            );
+        }
+    }
+
+
+    // ---------------------------------
+    // TREATMENTS
+    // ---------------------------------
+
+    async function loadTreatments() {
+
+        const rows =
+            document.getElementById('treatmentRows');
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/treatments`
+                );
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok)
+                throw new Error();
+
+
+            if (!data.length) {
+
+                rows.innerHTML =
+                    '<tr><td colspan="3" class="empty-state">No treatments available.</td></tr>';
+
+                return;
+            }
+
+
+            rows.innerHTML =
+                data.map(t => `
+                    <tr>
+
+                        <td>
+                            ${escapeHtml(t.treatmentName)}
+                        </td>
+
+                        <td>
+                            Rs. ${Number(t.consultationFee)
+                                .toLocaleString(undefined, {
+                                    minimumFractionDigits: 2
+                                })}
+                        </td>
+
+                        <td>
+
+                            <button
+                                class="btn-secondary"
+                                onclick='editTreatment(
+                                    ${t.treatmentId},
+                                    ${JSON.stringify(t.treatmentName)},
+                                    ${t.consultationFee}
+                                )'>
+                                Edit
+                            </button>
+
+                            <button
+                                class="btn-secondary"
+                                onclick="deleteTreatment(${t.treatmentId})">
+                                Delete
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `).join('');
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            rows.innerHTML =
+                '<tr><td colspan="3" class="empty-state">Unable to load treatments.</td></tr>';
+        }
+    }
+
+
+    async function saveTreatment() {
+
+        const name =
+            document.getElementById('treatmentName')
+                .value.trim();
+
+        const fee =
+            Number(
+                document.getElementById('treatmentFee')
+                    .value
+            );
+
+
+        if (name.length < 2) {
+
+            alert(
+                'Please enter a valid treatment name.'
+            );
+
+            return;
+        }
+
+
+        if (!Number.isFinite(fee) || fee < 0) {
+
+            alert(
+                'Please enter a valid consultation fee.'
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const url =
+                editingTreatmentId
+                    ? `${API}/treatments/${editingTreatmentId}`
+                    : `${API}/treatments`;
+
+            const method =
+                editingTreatmentId
+                    ? 'PUT'
+                    : 'POST';
+
+
+            const res =
+                await authFetch(url, {
+
+                    method,
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            treatmentName:
+                                name,
+
+                            consultationFee:
+                                fee
+                        })
+                });
+
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                alert(
+                    data.message ||
+                    'Unable to save treatment.'
+                );
+
+                return;
+            }
+
+
+            alert(
+                editingTreatmentId
+                    ? 'Treatment updated successfully.'
+                    : 'Treatment added successfully.'
+            );
+
+
+            cancelTreatmentEdit();
             loadTreatments();
-        }).catch(() => alert('Backend endpoint not built yet.'));
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to connect to the server.'
+            );
+        }
     }
 
-    function deleteDentist(id) {
-        if (!confirm('Delete this dentist?')) return;
-        fetch(`http://localhost:8080/dentists/${id}`, { method: 'DELETE' }).then(() => loadDentists());
+
+    function editTreatment(id, name, fee) {
+
+        editingTreatmentId = id;
+
+        document.getElementById('treatmentName').value =
+            name;
+
+        document.getElementById('treatmentFee').value =
+            fee;
+
+        document.getElementById('treatmentBtn').textContent =
+            'Update Treatment';
+
+        document.getElementById('treatmentCancelBtn').style.display =
+            'inline-block';
     }
 
-    function deleteTreatment(id) {
-        if (!confirm('Delete this treatment?')) return;
-        fetch(`http://localhost:8080/treatments/${id}`, { method: 'DELETE' }).then(() => loadTreatments());
+
+    function cancelTreatmentEdit() {
+
+        editingTreatmentId = null;
+
+        document.getElementById('treatmentName').value = '';
+
+        document.getElementById('treatmentFee').value = '';
+
+        document.getElementById('treatmentBtn').textContent =
+            'Add Treatment';
+
+        document.getElementById('treatmentCancelBtn').style.display =
+            'none';
     }
+
+
+    async function deleteTreatment(id) {
+
+        if (!confirm('Delete this treatment?'))
+            return;
+
+
+        try {
+
+            const res =
+                await authFetch(
+                    `${API}/treatments/${id}`,
+                    {
+                        method: 'DELETE'
+                    }
+                );
+
+
+            const data =
+                await res.json();
+
+
+            if (!res.ok) {
+
+                alert(
+                    data.message ||
+                    'Unable to delete treatment.'
+                );
+
+                return;
+            }
+
+
+            alert(
+                'Treatment deleted successfully.'
+            );
+
+            loadTreatments();
+
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert(
+                'Unable to delete treatment.'
+            );
+        }
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+    }
+
 </script>
+
 </body>
 </html>
