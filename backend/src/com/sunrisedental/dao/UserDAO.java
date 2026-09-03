@@ -25,7 +25,7 @@ public class UserDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     user = new User(
-                            rs.getInt("user_id"),
+                            rs.getInt("staff_id"),
                             rs.getString("username"),
                             rs.getString("password"),
                             rs.getString("role")
