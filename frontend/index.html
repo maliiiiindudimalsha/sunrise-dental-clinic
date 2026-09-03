@@ -229,27 +229,28 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        ffetch('http://localhost:8080/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-})
-.then(res => res.json().then(data => ({ ok: res.ok, data })))
-.then(({ ok, data }) => {
-    if (ok && data.status === 'success') {
-        localStorage.setItem('role', data.role);
-        localStorage.setItem('username', data.username);
-        window.location.href = 'dashboard.html';
-    } else {
-        alert(data.message || 'Invalid username or password');
-        btn.innerHTML = 'Sign In';
-    }
-})
-.catch(err => {
-    console.error('Connection Error:', err);
-    alert('Cannot reach server. Is it running?');
-    btn.innerHTML = 'Sign In';
-});
+        fetch('http://localhost:8080/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+        .then(res => res.json().then(data => ({ ok: res.ok, data })))
+        .then(({ ok, data }) => {
+            if (ok && data.status === 'success') {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.role);
+                localStorage.setItem('username', data.username);
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(data.message || 'Invalid username or password');
+                btn.innerHTML = 'Sign In';
+            }
+        })
+        .catch(err => {
+            console.error('Connection Error:', err);
+            alert('Cannot reach server. Is it running?');
+            btn.innerHTML = 'Sign In';
+        });
     });
 </script>
 </body>
