@@ -14,8 +14,10 @@ public class Main {
 
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
+        // Public route
         server.createContext("/login", new LoginController());
 
+        // Protected routes
         protect(server.createContext("/dashboard", new DashboardController()));
         protect(server.createContext("/appointments", new AppointmentController()));
         protect(server.createContext("/bills", new BillingController()));
@@ -23,9 +25,11 @@ public class Main {
         protect(server.createContext("/treatments", new TreatmentController()));
         protect(server.createContext("/reports", new ReportController()));
         protect(server.createContext("/notifications", new NotificationController()));
+        protect(server.createContext("/staff", new StaffController()));
         protect(server.createContext("/logout", new LogoutController()));
 
         server.start();
+
         System.out.println("Sunrise Dental Clinic Server started on port 8080");
     }
 
