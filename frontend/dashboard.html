@@ -11,15 +11,17 @@
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
 </head>
-<script>
-    const staffMenuItem = document.getElementById('staffMenuItem');
-
-    if (staffMenuItem &&
-        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
-        staffMenuItem.style.display = 'none';
-    }
-</script>
 <body>
+
+<!-- Mobile-only top bar with hamburger menu -->
+<div class="mobile-topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Open menu">&#9776;</button>
+    <div class="brand">Sunrise Dental</div>
+    <div style="width:34px;"></div>
+</div>
+
+<!-- Dark overlay behind the sidebar on mobile -->
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div class="sidebar">
     <div class="brand">Sunrise Dental</div>
@@ -131,7 +133,19 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', loadDashboard);
+    document.addEventListener('DOMContentLoaded', () => {
+        // Hide "Manage Staff" from non-admins.
+        // (Moved here so it runs AFTER the sidebar HTML actually exists -
+        // it used to sit between </head> and <body>, before the element
+        // was even in the DOM, so it silently did nothing.)
+        const staffMenuItem = document.getElementById('staffMenuItem');
+        if (staffMenuItem &&
+            String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
+            staffMenuItem.style.display = 'none';
+        }
+
+        loadDashboard();
+    });
 
     async function loadDashboard() {
         document.getElementById('welcomeText').textContent =

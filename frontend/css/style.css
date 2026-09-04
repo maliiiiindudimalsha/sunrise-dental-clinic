@@ -242,3 +242,83 @@ td { padding: 14px 15px; font-size: 14px; border-bottom: 1px solid var(--border)
 .accordion-item.open .accordion-header .icon { transform: rotate(45deg); }
 .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
 .accordion-item.open .accordion-body { max-height: 300px; padding-bottom: 16px; }
+
+/* =====================================================
+   MOBILE / RESPONSIVE
+   ===================================================== */
+
+.mobile-topbar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: var(--surface);
+    padding: 14px 20px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.mobile-topbar .brand {
+    padding: 0;
+    border: none;
+    margin: 0;
+    font-size: 18px;
+}
+.hamburger-btn {
+    background: none;
+    border: none;
+    font-size: 26px;
+    color: var(--primary-dark);
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+}
+.sidebar-overlay.active { display: block; }
+
+@media (max-width: 900px) {
+    body { flex-direction: column; }
+
+    .mobile-topbar { display: flex; }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 260px;
+        height: 100vh;
+        z-index: 1001;
+        transition: left 0.25s ease;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+    .sidebar.open { left: 0; }
+
+    .main-content { padding: 20px; }
+
+    .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .header h1 { font-size: 22px; }
+
+    .summary-grid { grid-template-columns: 1fr !important; }
+    .dashboard-grid { grid-template-columns: 1fr !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+
+    .search-row { flex-direction: column; }
+    .search-row button { width: 100%; }
+
+    /* Tables scroll horizontally on small screens instead of squashing */
+    .card-box table { display: block; overflow-x: auto; white-space: nowrap; }
+}
+
+@media (max-width: 480px) {
+    .stat-featured p, .summary-card p { font-size: 22px; }
+    .bar-chart { gap: 8px; }
+    .card-box { padding: 18px; }
+    .btn-primary, .btn-secondary { width: 100%; margin-top: 8px; }
+}
