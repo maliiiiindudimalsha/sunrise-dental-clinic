@@ -2,725 +2,238 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Manage Dentists & Treatments - Sunrise Dental</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
-</head>
-<script>
-    const staffMenuItem = document.getElementById('staffMenuItem');
 
-    if (staffMenuItem &&
-        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
-        staffMenuItem.style.display = 'none';
-    }
-</script>
+    <style>
+        html,body{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
+        .main-content{width:100%;min-width:0;padding:32px 38px}
+        .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+        .page-head h1{margin:0;font-size:27px}.page-head p{margin:5px 0 0;color:var(--text-muted);font-size:13px}
+        .page-badge{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:20px;background:rgba(255,102,0,.1);color:var(--primary-dark);font-size:11px;font-weight:600}
+        .manage-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .manage-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;min-width:0}
+        .card-head{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+        .card-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:rgba(255,102,0,.1);color:var(--primary-dark)}
+        .card-head h3{margin:0;font-size:15px}.card-head p{margin:3px 0 0;font-size:11px;color:var(--text-muted)}
+        .table-wrap{overflow-x:auto;margin-bottom:20px}.manage-table{min-width:520px}
+        .action-btns{display:flex;gap:6px;flex-wrap:wrap}.action-btns button{padding:7px 12px}
+        .delete-btn{border-color:#e02424;color:#e02424}
+        .editor{border-top:1px solid var(--border);padding-top:18px}
+        .editor-actions{display:flex;gap:9px}
+        @media(max-width:1100px){.manage-grid{grid-template-columns:1fr}}
+        @media(max-width:900px){.main-content{padding:20px}.page-head{flex-direction:column;align-items:flex-start;gap:12px}}
+        @media(max-width:480px){.editor-actions{flex-direction:column}.editor-actions button{width:100%}}
+    </style>
+</head>
+
 <body>
 
+<div class="mobile-topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">&#9776;</button>
+    <div class="brand">Sunrise Dental</div><div style="width:34px"></div>
+</div>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <div class="sidebar">
-
     <div class="brand">Sunrise Dental</div>
-
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
         <li><a href="manage_appointments.html">Search / Update</a></li>
         <li><a href="billing.html">Billing &amp; Receipt</a></li>
         <li><a href="manage_dentists_treatments.html" class="active">Manage Dentists</a></li>
-        <li id="staffMenuItem">
-            <a href="manage_staff.html">Manage Staff</a>
-        </li>
+        <li><a href="manage_staff.html">Manage Staff</a></li>
         <li><a href="reports.html">Reports &amp; Analytics</a></li>
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
-
     <div class="theme-toggle">
         <span>Light</span>
-
-        <label class="switch">
-            <input type="checkbox" id="themeSwitch">
-            <span class="slider"></span>
-        </label>
-
+        <label class="switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
         <span>Dark</span>
     </div>
-
     <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
-
 </div>
-
 
 <div class="main-content">
 
-    <div class="header">
-        <div>
-            <h1>Manage Dentists &amp; Treatments</h1>
-            <p>Admin only - keep the dentist list and treatment fees up to date.</p>
-        </div>
+    <div class="page-head">
+        <div><h1>Manage Dentists &amp; Treatments</h1><p>Maintain clinic dentists, specializations and treatment fees.</p></div>
+        <div class="page-badge"><span class="material-symbols-rounded" style="font-size:16px">admin_panel_settings</span>Admin Access</div>
     </div>
 
+    <div class="manage-grid">
 
-    <!-- DENTISTS -->
-    <div class="card-box">
-
-        <h3>Dentists</h3>
-
-        <table>
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Specialization</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-
-            <tbody id="dentistRows">
-            <tr>
-                <td colspan="3" class="empty-state">Loading...</td>
-            </tr>
-            </tbody>
-        </table>
-
-
-        <div class="form-grid" style="margin-top:20px;">
-
-            <div class="form-group">
-                <label>Dentist Name</label>
-                <input type="text" id="dentistName" maxlength="100">
+        <div class="manage-card">
+            <div class="card-head">
+                <div class="card-icon"><span class="material-symbols-rounded">dentistry</span></div>
+                <div><h3>Dentists</h3><p>Manage clinic dentist records.</p></div>
             </div>
 
-            <div class="form-group">
-                <label>Specialization</label>
-                <input type="text" id="dentistSpec" maxlength="100">
+            <div class="table-wrap">
+                <table class="manage-table">
+                    <thead><tr><th>Name</th><th>Specialization</th><th>Actions</th></tr></thead>
+                    <tbody id="dentistRows"><tr><td colspan="3" class="empty-state">Loading...</td></tr></tbody>
+                </table>
             </div>
 
+            <div class="editor">
+                <div class="form-grid">
+                    <div class="form-group"><label>Dentist Name</label><input id="dentistName" maxlength="100" placeholder="Enter dentist name"></div>
+                    <div class="form-group"><label>Specialization</label><input id="dentistSpec" maxlength="100" placeholder="Enter specialization"></div>
+                </div>
+                <div class="editor-actions">
+                    <button class="btn-primary" id="dentistBtn" onclick="saveDentist()">Add Dentist</button>
+                    <button class="btn-secondary" id="dentistCancelBtn" style="display:none" onclick="cancelDentistEdit()">Cancel Edit</button>
+                </div>
+            </div>
         </div>
 
-        <button
-                class="btn-primary"
-                id="dentistBtn"
-                onclick="saveDentist()">
-            Add Dentist
-        </button>
-
-        <button
-                class="btn-secondary"
-                id="dentistCancelBtn"
-                style="display:none;"
-                onclick="cancelDentistEdit()">
-            Cancel Edit
-        </button>
-
-    </div>
-
-
-    <!-- TREATMENTS -->
-    <div class="card-box">
-
-        <h3>Treatments &amp; Fees</h3>
-
-        <table>
-            <thead>
-            <tr>
-                <th>Treatment</th>
-                <th>Consultation Fee</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-
-            <tbody id="treatmentRows">
-            <tr>
-                <td colspan="3" class="empty-state">Loading...</td>
-            </tr>
-            </tbody>
-        </table>
-
-
-        <div class="form-grid" style="margin-top:20px;">
-
-            <div class="form-group">
-                <label>Treatment Name</label>
-                <input type="text" id="treatmentName" maxlength="100">
+        <div class="manage-card">
+            <div class="card-head">
+                <div class="card-icon"><span class="material-symbols-rounded">medical_services</span></div>
+                <div><h3>Treatments &amp; Fees</h3><p>Manage available treatments and consultation fees.</p></div>
             </div>
 
-            <div class="form-group">
-                <label>Consultation Fee (Rs.)</label>
-                <input
-                        type="number"
-                        id="treatmentFee"
-                        min="0"
-                        step="0.01">
+            <div class="table-wrap">
+                <table class="manage-table">
+                    <thead><tr><th>Treatment</th><th>Fee</th><th>Actions</th></tr></thead>
+                    <tbody id="treatmentRows"><tr><td colspan="3" class="empty-state">Loading...</td></tr></tbody>
+                </table>
             </div>
 
+            <div class="editor">
+                <div class="form-grid">
+                    <div class="form-group"><label>Treatment Name</label><input id="treatmentName" maxlength="100" placeholder="Enter treatment name"></div>
+                    <div class="form-group"><label>Consultation Fee (Rs.)</label><input type="number" id="treatmentFee" min="0" step=".01" placeholder="0.00"></div>
+                </div>
+                <div class="editor-actions">
+                    <button class="btn-primary" id="treatmentBtn" onclick="saveTreatment()">Add Treatment</button>
+                    <button class="btn-secondary" id="treatmentCancelBtn" style="display:none" onclick="cancelTreatmentEdit()">Cancel Edit</button>
+                </div>
+            </div>
         </div>
 
-        <button
-                class="btn-primary"
-                id="treatmentBtn"
-                onclick="saveTreatment()">
-            Add Treatment
-        </button>
-
-        <button
-                class="btn-secondary"
-                id="treatmentCancelBtn"
-                style="display:none;"
-                onclick="cancelTreatmentEdit()">
-            Cancel Edit
-        </button>
-
     </div>
-
 </div>
 
-
 <script>
+    const API='http://localhost:8080',$=id=>document.getElementById(id);
+    let editingDentistId=null,editingTreatmentId=null,dentists=[],treatments=[];
 
-    const API = 'http://localhost:8080';
-
-    let editingDentistId = null;
-    let editingTreatmentId = null;
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-
-        if (
-            String(localStorage.getItem('role')).toUpperCase()
-            !== 'ADMIN'
-        ) {
-
-            alert('Admin access only.');
-            location.href = 'dashboard.html';
-            return;
-        }
-
-        loadDentists();
-        loadTreatments();
+    document.addEventListener('DOMContentLoaded',()=>{
+        if((localStorage.getItem('role')||'').toUpperCase()!=='ADMIN'){location.href='dashboard.html';return}
+        loadDentists();loadTreatments();
     });
 
-
-    async function loadDentists() {
-
-        const rows =
-            document.getElementById('dentistRows');
-
-        try {
-
-            const res =
-                await authFetch(`${API}/dentists`);
-
-            const data =
-                await res.json();
-
-            if (!res.ok)
-                throw new Error();
-
-
-            if (!data.length) {
-
-                rows.innerHTML =
-                    '<tr><td colspan="3" class="empty-state">No dentists available.</td></tr>';
-
-                return;
-            }
-
-
-            rows.innerHTML =
-                data.map(d => `
-                    <tr>
-                        <td>${escapeHtml(d.name)}</td>
-
-                        <td>
-                            ${escapeHtml(d.specialization || '-')}
-                        </td>
-
-                        <td>
-                            <button
-                                class="btn-secondary"
-                                onclick='editDentist(
-                                    ${d.dentistId},
-                                    ${JSON.stringify(d.name)},
-                                    ${JSON.stringify(d.specialization || '')}
-                                )'>
-                                Edit
-                            </button>
-
-                            <button
-                                class="btn-secondary"
-                                onclick="deleteDentist(${d.dentistId})">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            rows.innerHTML =
-                '<tr><td colspan="3" class="empty-state">Unable to load dentists.</td></tr>';
-        }
+    async function loadDentists(){
+        try{
+            const r=await authFetch(`${API}/dentists`);dentists=await r.json();
+            if(!r.ok)throw 0;
+            $('dentistRows').innerHTML=dentists.length?dentists.map(d=>`
+                <tr><td>${esc(d.name)}</td><td>${esc(d.specialization||'-')}</td>
+                <td><div class="action-btns">
+                    <button class="btn-secondary" onclick="editDentist(${d.dentistId})">Edit</button>
+                    <button class="btn-secondary delete-btn" onclick="deleteDentist(${d.dentistId})">Delete</button>
+                </div></td></tr>`).join(''):'<tr><td colspan="3" class="empty-state">No dentists available.</td></tr>';
+        }catch{$('dentistRows').innerHTML='<tr><td colspan="3" class="empty-state">Unable to load dentists.</td></tr>'}
     }
 
+    async function saveDentist(){
+        const name=$('dentistName').value.trim(),specialization=$('dentistSpec').value.trim();
+        if(name.length<2)return alert('Please enter a valid dentist name.');
 
-    async function saveDentist() {
+        try{
+            const r=await authFetch(editingDentistId?`${API}/dentists/${editingDentistId}`:`${API}/dentists`,{
+                method:editingDentistId?'PUT':'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({name,specialization})
+            }),d=await r.json();
 
-        const name =
-            document.getElementById('dentistName')
-                .value.trim();
+            if(!r.ok)return alert(d.message||'Unable to save dentist.');
+            alert(editingDentistId?'Dentist updated successfully.':'Dentist added successfully.');
+            cancelDentistEdit();loadDentists();
+        }catch{alert('Unable to connect to the server.')}
+    }
 
-        const specialization =
-            document.getElementById('dentistSpec')
-                .value.trim();
+    function editDentist(id){
+        const d=dentists.find(x=>x.dentistId===id);if(!d)return;
+        editingDentistId=id;$('dentistName').value=d.name;$('dentistSpec').value=d.specialization||'';
+        $('dentistBtn').textContent='Update Dentist';$('dentistCancelBtn').style.display='inline-block';
+    }
 
+    function cancelDentistEdit(){
+        editingDentistId=null;$('dentistName').value='';$('dentistSpec').value='';
+        $('dentistBtn').textContent='Add Dentist';$('dentistCancelBtn').style.display='none';
+    }
 
-        if (name.length < 2) {
-
-            alert('Please enter a valid dentist name.');
-            return;
-        }
-
-
-        try {
-
-            const url =
-                editingDentistId
-                    ? `${API}/dentists/${editingDentistId}`
-                    : `${API}/dentists`;
-
-            const method =
-                editingDentistId
-                    ? 'PUT'
-                    : 'POST';
-
-
-            const res =
-                await authFetch(url, {
-
-                    method,
-
-                    headers: {
-                        'Content-Type':
-                            'application/json'
-                    },
-
-                    body:
-                        JSON.stringify({
-                            name,
-                            specialization
-                        })
-                });
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                alert(
-                    data.message ||
-                    'Unable to save dentist.'
-                );
-
-                return;
-            }
-
-
-            alert(
-                editingDentistId
-                    ? 'Dentist updated successfully.'
-                    : 'Dentist added successfully.'
-            );
-
-
-            cancelDentistEdit();
+    async function deleteDentist(id){
+        if(!confirm('Delete this dentist?'))return;
+        try{
+            const r=await authFetch(`${API}/dentists/${id}`,{method:'DELETE'}),d=await r.json();
+            if(!r.ok)return alert(d.message||'Unable to delete dentist.');
             loadDentists();
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            alert(
-                'Unable to connect to the server.'
-            );
-        }
+        }catch{alert('Unable to delete dentist.')}
     }
 
-
-    function editDentist(id, name, specialization) {
-
-        editingDentistId = id;
-
-        document.getElementById('dentistName').value =
-            name;
-
-        document.getElementById('dentistSpec').value =
-            specialization;
-
-        document.getElementById('dentistBtn').textContent =
-            'Update Dentist';
-
-        document.getElementById('dentistCancelBtn').style.display =
-            'inline-block';
+    async function loadTreatments(){
+        try{
+            const r=await authFetch(`${API}/treatments`);treatments=await r.json();
+            if(!r.ok)throw 0;
+            $('treatmentRows').innerHTML=treatments.length?treatments.map(t=>`
+                <tr><td>${esc(t.treatmentName)}</td><td>Rs. ${Number(t.consultationFee).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                <td><div class="action-btns">
+                    <button class="btn-secondary" onclick="editTreatment(${t.treatmentId})">Edit</button>
+                    <button class="btn-secondary delete-btn" onclick="deleteTreatment(${t.treatmentId})">Delete</button>
+                </div></td></tr>`).join(''):'<tr><td colspan="3" class="empty-state">No treatments available.</td></tr>';
+        }catch{$('treatmentRows').innerHTML='<tr><td colspan="3" class="empty-state">Unable to load treatments.</td></tr>'}
     }
 
+    async function saveTreatment(){
+        const name=$('treatmentName').value.trim(),fee=Number($('treatmentFee').value);
+        if(name.length<2)return alert('Please enter a valid treatment name.');
+        if(!Number.isFinite(fee)||fee<0)return alert('Please enter a valid consultation fee.');
 
-    function cancelDentistEdit() {
+        try{
+            const r=await authFetch(editingTreatmentId?`${API}/treatments/${editingTreatmentId}`:`${API}/treatments`,{
+                method:editingTreatmentId?'PUT':'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({treatmentName:name,consultationFee:fee})
+            }),d=await r.json();
 
-        editingDentistId = null;
-
-        document.getElementById('dentistName').value = '';
-        document.getElementById('dentistSpec').value = '';
-
-        document.getElementById('dentistBtn').textContent =
-            'Add Dentist';
-
-        document.getElementById('dentistCancelBtn').style.display =
-            'none';
+            if(!r.ok)return alert(d.message||'Unable to save treatment.');
+            alert(editingTreatmentId?'Treatment updated successfully.':'Treatment added successfully.');
+            cancelTreatmentEdit();loadTreatments();
+        }catch{alert('Unable to connect to the server.')}
     }
 
-
-    async function deleteDentist(id) {
-
-        if (!confirm('Delete this dentist?'))
-            return;
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/dentists/${id}`,
-                    {
-                        method: 'DELETE'
-                    }
-                );
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                alert(
-                    data.message ||
-                    'Unable to delete dentist.'
-                );
-
-                return;
-            }
-
-
-            alert(
-                'Dentist deleted successfully.'
-            );
-
-            loadDentists();
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            alert(
-                'Unable to delete dentist.'
-            );
-        }
+    function editTreatment(id){
+        const t=treatments.find(x=>x.treatmentId===id);if(!t)return;
+        editingTreatmentId=id;$('treatmentName').value=t.treatmentName;$('treatmentFee').value=t.consultationFee;
+        $('treatmentBtn').textContent='Update Treatment';$('treatmentCancelBtn').style.display='inline-block';
     }
 
-
-    // ---------------------------------
-    // TREATMENTS
-    // ---------------------------------
-
-    async function loadTreatments() {
-
-        const rows =
-            document.getElementById('treatmentRows');
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/treatments`
-                );
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok)
-                throw new Error();
-
-
-            if (!data.length) {
-
-                rows.innerHTML =
-                    '<tr><td colspan="3" class="empty-state">No treatments available.</td></tr>';
-
-                return;
-            }
-
-
-            rows.innerHTML =
-                data.map(t => `
-                    <tr>
-
-                        <td>
-                            ${escapeHtml(t.treatmentName)}
-                        </td>
-
-                        <td>
-                            Rs. ${Number(t.consultationFee)
-                                .toLocaleString(undefined, {
-                                    minimumFractionDigits: 2
-                                })}
-                        </td>
-
-                        <td>
-
-                            <button
-                                class="btn-secondary"
-                                onclick='editTreatment(
-                                    ${t.treatmentId},
-                                    ${JSON.stringify(t.treatmentName)},
-                                    ${t.consultationFee}
-                                )'>
-                                Edit
-                            </button>
-
-                            <button
-                                class="btn-secondary"
-                                onclick="deleteTreatment(${t.treatmentId})">
-                                Delete
-                            </button>
-
-                        </td>
-
-                    </tr>
-                `).join('');
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            rows.innerHTML =
-                '<tr><td colspan="3" class="empty-state">Unable to load treatments.</td></tr>';
-        }
+    function cancelTreatmentEdit(){
+        editingTreatmentId=null;$('treatmentName').value='';$('treatmentFee').value='';
+        $('treatmentBtn').textContent='Add Treatment';$('treatmentCancelBtn').style.display='none';
     }
 
-
-    async function saveTreatment() {
-
-        const name =
-            document.getElementById('treatmentName')
-                .value.trim();
-
-        const fee =
-            Number(
-                document.getElementById('treatmentFee')
-                    .value
-            );
-
-
-        if (name.length < 2) {
-
-            alert(
-                'Please enter a valid treatment name.'
-            );
-
-            return;
-        }
-
-
-        if (!Number.isFinite(fee) || fee < 0) {
-
-            alert(
-                'Please enter a valid consultation fee.'
-            );
-
-            return;
-        }
-
-
-        try {
-
-            const url =
-                editingTreatmentId
-                    ? `${API}/treatments/${editingTreatmentId}`
-                    : `${API}/treatments`;
-
-            const method =
-                editingTreatmentId
-                    ? 'PUT'
-                    : 'POST';
-
-
-            const res =
-                await authFetch(url, {
-
-                    method,
-
-                    headers: {
-                        'Content-Type':
-                            'application/json'
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            treatmentName:
-                                name,
-
-                            consultationFee:
-                                fee
-                        })
-                });
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                alert(
-                    data.message ||
-                    'Unable to save treatment.'
-                );
-
-                return;
-            }
-
-
-            alert(
-                editingTreatmentId
-                    ? 'Treatment updated successfully.'
-                    : 'Treatment added successfully.'
-            );
-
-
-            cancelTreatmentEdit();
+    async function deleteTreatment(id){
+        if(!confirm('Delete this treatment?'))return;
+        try{
+            const r=await authFetch(`${API}/treatments/${id}`,{method:'DELETE'}),d=await r.json();
+            if(!r.ok)return alert(d.message||'Unable to delete treatment.');
             loadTreatments();
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            alert(
-                'Unable to connect to the server.'
-            );
-        }
+        }catch{alert('Unable to delete treatment.')}
     }
 
-
-    function editTreatment(id, name, fee) {
-
-        editingTreatmentId = id;
-
-        document.getElementById('treatmentName').value =
-            name;
-
-        document.getElementById('treatmentFee').value =
-            fee;
-
-        document.getElementById('treatmentBtn').textContent =
-            'Update Treatment';
-
-        document.getElementById('treatmentCancelBtn').style.display =
-            'inline-block';
-    }
-
-
-    function cancelTreatmentEdit() {
-
-        editingTreatmentId = null;
-
-        document.getElementById('treatmentName').value = '';
-
-        document.getElementById('treatmentFee').value = '';
-
-        document.getElementById('treatmentBtn').textContent =
-            'Add Treatment';
-
-        document.getElementById('treatmentCancelBtn').style.display =
-            'none';
-    }
-
-
-    async function deleteTreatment(id) {
-
-        if (!confirm('Delete this treatment?'))
-            return;
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/treatments/${id}`,
-                    {
-                        method: 'DELETE'
-                    }
-                );
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                alert(
-                    data.message ||
-                    'Unable to delete treatment.'
-                );
-
-                return;
-            }
-
-
-            alert(
-                'Treatment deleted successfully.'
-            );
-
-            loadTreatments();
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            alert(
-                'Unable to delete treatment.'
-            );
-        }
-    }
-
-
-    function escapeHtml(value) {
-
-        return String(value || '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;');
-    }
-
+    function esc(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 </script>
-
 </body>
 </html>

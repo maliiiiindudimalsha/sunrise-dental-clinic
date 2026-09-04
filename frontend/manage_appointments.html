@@ -1,964 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>
-        Search Appointment - Sunrise Dental
-    </title>
-
-    <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-    >
-
-    <link
-            rel="stylesheet"
-            href="css/style.css"
-    >
-
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Search / Update Appointment - Sunrise Dental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
 
+    <style>
+        html,body{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
+        .main-content{width:100%;min-width:0;padding:32px 38px}
+        .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+        .page-head h1{margin:0;font-size:27px}.page-head p{margin:5px 0 0;color:var(--text-muted);font-size:13px}
+        .page-badge{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:20px;background:rgba(255,102,0,.1);color:var(--primary-dark);font-size:11px;font-weight:600}
+        .search-card,.details-card{max-width:1100px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:20px}
+        .search-box{display:flex;align-items:center;gap:12px}
+        .search-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:11px;background:rgba(255,102,0,.1);color:var(--primary-dark)}
+        .search-box select{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:var(--input-bg);color:var(--text);font-family:Poppins,sans-serif}
+        .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+        .card-head h3{margin:0;font-size:15px}.card-head p{margin:3px 0 0;color:var(--text-muted);font-size:11px}
+        .actions{display:flex;gap:10px;justify-content:flex-end}
+        .danger{border-color:#e02424;color:#e02424}.danger:hover{background:rgba(224,36,36,.08)}
+        .empty-box{max-width:1100px;padding:55px 20px;text-align:center;background:var(--surface);border:1px dashed var(--border);border-radius:16px;color:var(--text-muted);font-size:13px}
+        input:disabled{opacity:.6;cursor:not-allowed}
+        @media(max-width:900px){.main-content{padding:20px}.page-head{flex-direction:column;align-items:flex-start;gap:12px}.search-card,.details-card{padding:20px}}
+        @media(max-width:520px){.actions{flex-direction:column}.actions button{width:100%}}
+    </style>
 </head>
 
-<script>
-    const staffMenuItem = document.getElementById('staffMenuItem');
-
-    if (staffMenuItem &&
-        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
-        staffMenuItem.style.display = 'none';
-    }
-</script>
 <body>
 
-
-<div class="sidebar">
-
-    <div class="brand">
-        Sunrise Dental
-    </div>
-
-
-    <ul class="sidebar-menu">
-
-        <li>
-            <a href="dashboard.html">
-                Dashboard / Home
-            </a>
-        </li>
-
-        <li>
-            <a href="register_appointment.html">
-                Register Appointment
-            </a>
-        </li>
-
-        <li>
-            <a
-                    href="manage_appointments.html"
-                    class="active"
-            >
-                Search / Update
-            </a>
-        </li>
-
-        <li>
-            <a href="billing.html">
-                Billing & Receipt
-            </a>
-        </li>
-
-        <li>
-            <a href="manage_dentists_treatments.html">
-                Manage Dentists
-            </a>
-        </li>
-        <li id="staffMenuItem">
-            <a href="manage_staff.html">Manage Staff</a>
-        </li>
-
-        <li>
-            <a href="reports.html">
-                Reports & Analytics
-            </a>
-        </li>
-
-        <li>
-            <a href="notifications.html">
-                Notifications
-            </a>
-        </li>
-
-        <li>
-            <a href="help.html">
-                Help / Instructions
-            </a>
-        </li>
-
-    </ul>
-
-
-    <div class="theme-toggle">
-
-        <span>Light</span>
-
-        <label class="switch">
-
-            <input
-                    type="checkbox"
-                    id="themeSwitch"
-            >
-
-            <span class="slider"></span>
-
-        </label>
-
-        <span>Dark</span>
-
-    </div>
-
-
-    <a
-            href="#"
-            class="logout-btn"
-            onclick="logout()"
-    >
-        Log Out
-    </a>
-
+<div class="mobile-topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">&#9776;</button>
+    <div class="brand">Sunrise Dental</div>
+    <div style="width:34px"></div>
 </div>
 
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar">
+    <div class="brand">Sunrise Dental</div>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.html">Dashboard / Home</a></li>
+        <li><a href="register_appointment.html">Register Appointment</a></li>
+        <li><a href="manage_appointments.html" class="active">Search / Update</a></li>
+        <li><a href="billing.html">Billing &amp; Receipt</a></li>
+        <li class="admin-only"><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
+        <li class="admin-only"><a href="manage_staff.html">Manage Staff</a></li>
+        <li class="admin-only"><a href="reports.html">Reports &amp; Analytics</a></li>
+        <li><a href="notifications.html">Notifications</a></li>
+        <li><a href="help.html">Help / Instructions</a></li>
+    </ul>
+
+    <div class="theme-toggle">
+        <span>Light</span>
+        <label class="switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
+        <span>Dark</span>
+    </div>
+
+    <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
+</div>
 
 <div class="main-content">
 
-    <div class="header">
-
+    <div class="page-head">
         <div>
-
-            <h1>
-                Search / Update Appointment
-            </h1>
-
-            <p>
-                Select an appointment to view and update details.
-            </p>
-
+            <h1>Search / Update Appointment</h1>
+            <p>Select an appointment to view, edit or cancel its details.</p>
         </div>
-
+        <div class="page-badge">
+            <span class="material-symbols-rounded" style="font-size:16px">manage_search</span>
+            Appointment Management
+        </div>
     </div>
 
-
-    <div class="card-box">
-
-        <div class="search-row">
-
-            <select
-                    id="appointmentSelect"
-                    onchange="searchAppointment()"
-                    style="width:100%;"
-            >
-
-                <option value="">
-                    Loading appointments...
-                </option>
-
+    <div class="search-card">
+        <div class="search-box">
+            <div class="search-icon"><span class="material-symbols-rounded">search</span></div>
+            <select id="appointmentSelect" onchange="searchAppointment()">
+                <option value="">Loading appointments...</option>
             </select>
-
         </div>
-
     </div>
 
+    <div class="details-card" id="resultCard" style="display:none">
 
-    <div
-            class="card-box"
-            id="resultCard"
-            style="display:none;"
-    >
-
-        <h3>
-            Appointment Details
-        </h3>
-
+        <div class="card-head">
+            <div>
+                <h3>Appointment Details</h3>
+                <p>Update patient information or appointment date and time.</p>
+            </div>
+            <span id="statusBadge"></span>
+        </div>
 
         <div class="form-grid">
 
-
             <div class="form-group">
-
-                <label>
-                    Appointment No
-                </label>
-
-                <input
-                        type="text"
-                        id="rAppointmentNo"
-                        readonly
-                >
-
+                <label>Appointment No</label>
+                <input type="text" id="rAppointmentNo" readonly>
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Status
-                </label>
-
-                <input
-                        type="text"
-                        id="rStatus"
-                        readonly
-                >
-
+                <label>Status</label>
+                <input type="text" id="rStatus" readonly>
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Patient Name
-                </label>
-
-                <input
-                        type="text"
-                        id="rPatientName"
-                        maxlength="100"
-                        required
-                >
-
+                <label>Patient Name</label>
+                <input type="text" id="rPatientName" maxlength="100">
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Contact Number
-                </label>
-
-                <input
-                        type="text"
-                        id="rContactNumber"
-                        maxlength="20"
-                        required
-                >
-
+                <label>Contact Number</label>
+                <input type="text" id="rContactNumber" maxlength="20">
             </div>
 
-
-            <div
-                    class="form-group"
-                    style="grid-column:1 / -1;"
-            >
-
-                <label>
-                    Address
-                </label>
-
-                <input
-                        type="text"
-                        id="rAddress"
-                        maxlength="255"
-                        required
-                >
-
+            <div class="form-group" style="grid-column:1/-1">
+                <label>Address</label>
+                <input type="text" id="rAddress" maxlength="255">
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Dentist
-                </label>
-
-                <input
-                        type="text"
-                        id="rDentist"
-                        readonly
-                >
-
+                <label>Dentist</label>
+                <input type="text" id="rDentist" readonly>
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Treatment
-                </label>
-
-                <input
-                        type="text"
-                        id="rTreatment"
-                        readonly
-                >
-
+                <label>Treatment</label>
+                <input type="text" id="rTreatment" readonly>
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Date
-                </label>
-
-                <input
-                        type="date"
-                        id="rDate"
-                        required
-                >
-
+                <label>Appointment Date</label>
+                <input type="date" id="rDate">
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Time
-                </label>
-
-                <input
-                        type="time"
-                        id="rTime"
-                        required
-                >
-
+                <label>Appointment Time</label>
+                <input type="time" id="rTime">
             </div>
 
         </div>
 
-
-        <button
-                class="btn-primary"
-                id="saveBtn"
-                onclick="updateAppointment()"
-        >
-            Save Changes
-        </button>
-
-
-        <button
-                class="btn-secondary"
-                id="cancelBtn"
-                onclick="cancelAppointment()"
-        >
-            Cancel Appointment
-        </button>
+        <div class="actions">
+            <button class="btn-primary" id="saveBtn" onclick="updateAppointment()">Save Changes</button>
+            <button class="btn-secondary danger" id="cancelBtn" onclick="cancelAppointment()">Cancel Appointment</button>
+        </div>
 
     </div>
 
-
-    <div
-            class="card-box empty-state"
-            id="emptyState"
-    >
-
-        Select an appointment above.
-
-    </div>
+    <div class="empty-box" id="emptyState">Select an appointment above to view its details.</div>
 
 </div>
 
-
 <script>
+    const API='http://localhost:8080',$=id=>document.getElementById(id);
 
-    const API =
-        'http://localhost:8080';
+    document.addEventListener('DOMContentLoaded',()=>{
+        if((localStorage.getItem('role')||'').toUpperCase()!=='ADMIN')
+            document.querySelectorAll('.admin-only').forEach(x=>x.style.display='none');
 
+        $('rDate').min=new Date().toISOString().split('T')[0];
+        loadAppointments();
+    });
 
-    document.addEventListener(
-        'DOMContentLoaded',
-        () => {
+    async function loadAppointments(selected=''){
+        try{
+            const r=await authFetch(`${API}/appointments`),d=await r.json();
+            if(!r.ok)throw 0;
 
-            document
-                .getElementById('rDate')
-                .min =
-                new Date()
-                    .toISOString()
-                    .split('T')[0];
-
-            loadAppointments();
-        }
-    );
-
-
-    // LOAD APPOINTMENTS INTO DROPDOWN
-    async function loadAppointments(
-        selectedAppointment = ''
-    ) {
-
-        const select =
-            document.getElementById(
-                'appointmentSelect'
-            );
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/appointments`
-                );
-
-
-            const appointments =
-                await res.json();
-
-
-            if (!res.ok)
-                throw new Error();
-
-
-            select.innerHTML =
-                '<option value="">Select appointment</option>';
-
-
-            appointments.forEach(a => {
-
-                const option =
-                    document.createElement(
-                        'option'
-                    );
-
-
-                option.value =
-                    a.appointmentNo;
-
-
-                option.textContent =
-                    `${a.appointmentNo} - ${a.patientName} - ${a.appointmentDate} (${a.status})`;
-
-
-                if (
-                    a.appointmentNo ===
-                    selectedAppointment
-                ) {
-
-                    option.selected =
-                        true;
-                }
-
-
-                select.appendChild(
-                    option
-                );
-            });
-
-
-            if (!appointments.length) {
-
-                select.innerHTML =
-                    '<option value="">No appointments available</option>';
-            }
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            select.innerHTML =
-                '<option value="">Unable to load appointments</option>';
-        }
+            $('appointmentSelect').innerHTML=d.length
+                ?'<option value="">Select appointment</option>'+d.map(a=>
+                    `<option value="${esc(a.appointmentNo)}" ${a.appointmentNo===selected?'selected':''}>
+                        ${esc(a.appointmentNo)} - ${esc(a.patientName)} - ${esc(a.appointmentDate)} (${esc(a.status)})
+                    </option>`).join('')
+                :'<option value="">No appointments available</option>';
+        }catch{$('appointmentSelect').innerHTML='<option value="">Unable to load appointments</option>'}
     }
 
+    async function searchAppointment(){
+        const no=$('appointmentSelect').value;
+        if(!no)return showEmpty('Select an appointment above to view its details.');
 
-    // LOAD SELECTED APPOINTMENT
-    async function searchAppointment() {
+        try{
+            const r=await authFetch(`${API}/appointments/${no}`),d=await r.json();
+            if(!r.ok)return showEmpty(d.message||'Appointment not found.');
 
-        const appointmentNo =
-            document
-                .getElementById(
-                    'appointmentSelect'
-                )
-                .value;
+            $('resultCard').style.display='block';
+            $('emptyState').style.display='none';
 
+            $('rAppointmentNo').value=d.appointmentNo||'';
+            $('rStatus').value=d.status||'';
+            $('rPatientName').value=d.patientName||'';
+            $('rContactNumber').value=d.contactNumber||'';
+            $('rAddress').value=d.address||'';
+            $('rDentist').value=d.dentistName||'';
+            $('rTreatment').value=d.treatmentName||'';
+            $('rDate').value=d.appointmentDate||'';
+            $('rTime').value=(d.appointmentTime||'').substring(0,5);
 
-        if (!appointmentNo) {
-
-            document
-                .getElementById(
-                    'resultCard'
-                )
-                .style.display =
-                'none';
-
-
-            showEmpty(
-                'Select an appointment above.'
-            );
-
-            return;
-        }
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/appointments/${appointmentNo}`
-                );
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                showEmpty(
-                    data.message ||
-                    'Appointment not found.'
-                );
-
-                return;
-            }
-
-
-            document
-                .getElementById(
-                    'resultCard'
-                )
-                .style.display =
-                'block';
-
-
-            document
-                .getElementById(
-                    'emptyState'
-                )
-                .style.display =
-                'none';
-
-
-            document
-                .getElementById(
-                    'rAppointmentNo'
-                )
-                .value =
-                data.appointmentNo || '';
-
-
-            document
-                .getElementById(
-                    'rStatus'
-                )
-                .value =
-                data.status || '';
-
-
-            document
-                .getElementById(
-                    'rPatientName'
-                )
-                .value =
-                data.patientName || '';
-
-
-            document
-                .getElementById(
-                    'rContactNumber'
-                )
-                .value =
-                data.contactNumber || '';
-
-
-            document
-                .getElementById(
-                    'rAddress'
-                )
-                .value =
-                data.address || '';
-
-
-            document
-                .getElementById(
-                    'rDentist'
-                )
-                .value =
-                data.dentistName || '';
-
-
-            document
-                .getElementById(
-                    'rTreatment'
-                )
-                .value =
-                data.treatmentName || '';
-
-
-            document
-                .getElementById(
-                    'rDate'
-                )
-                .value =
-                data.appointmentDate || '';
-
-
-            document
-                .getElementById(
-                    'rTime'
-                )
-                .value =
-                (data.appointmentTime || '')
-                    .substring(0, 5);
-
-
-            setCancelledState(
-                data.status
-            );
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            showEmpty(
-                'Unable to load appointment.'
-            );
-        }
+            setCancelledState(d.status);
+        }catch{showEmpty('Unable to load appointment.')}
     }
 
-
-    // UPDATE
-    async function updateAppointment() {
-
-        const appointmentNo =
-            document
-                .getElementById(
-                    'rAppointmentNo'
-                )
-                .value;
-
-
-        const payload = {
-
-            patientName:
-                document
-                    .getElementById(
-                        'rPatientName'
-                    )
-                    .value
-                    .trim(),
-
-            contactNumber:
-                document
-                    .getElementById(
-                        'rContactNumber'
-                    )
-                    .value
-                    .trim(),
-
-            address:
-                document
-                    .getElementById(
-                        'rAddress'
-                    )
-                    .value
-                    .trim(),
-
-            appointmentDate:
-                document
-                    .getElementById(
-                        'rDate'
-                    )
-                    .value,
-
-            appointmentTime:
-                document
-                    .getElementById(
-                        'rTime'
-                    )
-                    .value
+    async function updateAppointment(){
+        const no=$('rAppointmentNo').value,p={
+            patientName:$('rPatientName').value.trim(),
+            contactNumber:$('rContactNumber').value.trim(),
+            address:$('rAddress').value.trim(),
+            appointmentDate:$('rDate').value,
+            appointmentTime:$('rTime').value
         };
 
+        if(!/^[A-Za-z ]{2,100}$/.test(p.patientName))return alert('Please enter a valid patient name.');
+        if(!/^[0-9+\- ]{7,20}$/.test(p.contactNumber))return alert('Please enter a valid contact number.');
+        if(!p.address||!p.appointmentDate||!p.appointmentTime)return alert('Please complete all fields.');
+        if(p.appointmentDate<new Date().toISOString().split('T')[0])return alert('Past dates are not allowed.');
 
-        if (
-            !/^[A-Za-z ]{2,100}$/
-                .test(payload.patientName)
-        ) {
+        try{
+            const r=await authFetch(`${API}/appointments/${no}`,{
+                method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)
+            });
+            const d=await r.json();
+            if(!r.ok)return alert(d.message||'Unable to update appointment.');
 
-            alert(
-                'Please enter a valid patient name.'
-            );
-
-            return;
-        }
-
-
-        if (
-            !/^[0-9+\- ]{7,20}$/
-                .test(payload.contactNumber)
-        ) {
-
-            alert(
-                'Please enter a valid contact number.'
-            );
-
-            return;
-        }
-
-
-        if (
-            !payload.address ||
-            !payload.appointmentDate ||
-            !payload.appointmentTime
-        ) {
-
-            alert(
-                'Please complete all fields.'
-            );
-
-            return;
-        }
-
-
-        if (
-            payload.appointmentDate <
-            new Date()
-                .toISOString()
-                .split('T')[0]
-        ) {
-
-            alert(
-                'Past dates are not allowed.'
-            );
-
-            return;
-        }
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/appointments/${appointmentNo}`,
-                    {
-
-                        method:
-                            'PUT',
-
-                        headers: {
-
-                            'Content-Type':
-                                'application/json'
-                        },
-
-                        body:
-                            JSON.stringify(
-                                payload
-                            )
-                    }
-                );
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                alert(
-                    data.message ||
-                    'Unable to update appointment.'
-                );
-
-                return;
-            }
-
-
-            alert(
-                'Appointment updated successfully.'
-            );
-
-
-            await loadAppointments(
-                appointmentNo
-            );
-
-
+            alert('Appointment updated successfully.');
+            await loadAppointments(no);
             await searchAppointment();
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            alert(
-                'Unable to connect to the server.'
-            );
-        }
+        }catch{alert('Unable to connect to the server.')}
     }
 
+    async function cancelAppointment(){
+        const no=$('rAppointmentNo').value;
+        if(!confirm('Are you sure you want to cancel this appointment?'))return;
 
-    // CANCEL
-    async function cancelAppointment() {
+        try{
+            const r=await authFetch(`${API}/appointments/${no}`,{method:'DELETE'}),d=await r.json();
+            if(!r.ok)return alert(d.message||'Unable to cancel appointment.');
 
-        const appointmentNo =
-            document
-                .getElementById(
-                    'rAppointmentNo'
-                )
-                .value;
-
-
-        if (
-            !confirm(
-                'Are you sure you want to cancel this appointment?'
-            )
-        ) {
-
-            return;
-        }
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/appointments/${appointmentNo}`,
-                    {
-                        method:
-                            'DELETE'
-                    }
-                );
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                alert(
-                    data.message ||
-                    'Unable to cancel appointment.'
-                );
-
-                return;
-            }
-
-
-            alert(
-                'Appointment cancelled successfully.'
-            );
-
-
-            await loadAppointments(
-                appointmentNo
-            );
-
-
+            alert('Appointment cancelled successfully.');
+            await loadAppointments(no);
             await searchAppointment();
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            alert(
-                'Unable to connect to the server.'
-            );
-        }
+        }catch{alert('Unable to connect to the server.')}
     }
 
-
-    // DISABLE CANCELLED APPOINTMENTS
-    function setCancelledState(status) {
-
-        const cancelled =
-            String(status)
-                .toUpperCase()
-            === 'CANCELLED';
-
-
-        document
-            .getElementById(
-                'rPatientName'
-            )
-            .disabled =
-            cancelled;
-
-
-        document
-            .getElementById(
-                'rContactNumber'
-            )
-            .disabled =
-            cancelled;
-
-
-        document
-            .getElementById(
-                'rAddress'
-            )
-            .disabled =
-            cancelled;
-
-
-        document
-            .getElementById(
-                'rDate'
-            )
-            .disabled =
-            cancelled;
-
-
-        document
-            .getElementById(
-                'rTime'
-            )
-            .disabled =
-            cancelled;
-
-
-        document
-            .getElementById(
-                'saveBtn'
-            )
-            .disabled =
-            cancelled;
-
-
-        document
-            .getElementById(
-                'cancelBtn'
-            )
-            .disabled =
-            cancelled;
+    function setCancelledState(status){
+        const c=String(status).toUpperCase()==='CANCELLED';
+        ['rPatientName','rContactNumber','rAddress','rDate','rTime','saveBtn','cancelBtn'].forEach(id=>$(id).disabled=c);
     }
 
-
-    function showEmpty(message) {
-
-        document
-            .getElementById(
-                'resultCard'
-            )
-            .style.display =
-            'none';
-
-
-        const empty =
-            document
-                .getElementById(
-                    'emptyState'
-                );
-
-
-        empty.style.display =
-            'block';
-
-
-        empty.textContent =
-            message;
+    function showEmpty(t){
+        $('resultCard').style.display='none';
+        $('emptyState').style.display='block';
+        $('emptyState').textContent=t;
     }
 
+    function esc(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 </script>
-
 
 </body>
 </html>

@@ -2,381 +2,160 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Billing - Sunrise Dental</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
 
     <style>
-        .receipt {
-            border: 1px dashed #ddd;
-            padding: 25px;
-            border-radius: 12px;
-        }
-
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        .receipt-total {
-            display: flex;
-            justify-content: space-between;
-            padding-top: 18px;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary-dark);
-        }
-
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-
-            .receipt, .receipt * {
-                visibility: visible;
-            }
-
-            .receipt {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none;
-            }
+        html,body{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
+        .main-content{width:100%;min-width:0;padding:32px 38px}
+        .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+        .page-head h1{margin:0;font-size:27px}.page-head p{margin:5px 0 0;color:var(--text-muted);font-size:13px}
+        .page-badge{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:20px;background:rgba(255,102,0,.1);color:var(--primary-dark);font-size:11px;font-weight:600}
+        .bill-grid{display:grid;grid-template-columns:.75fr 1.25fr;gap:20px;max-width:1150px}
+        .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;min-width:0}
+        .panel-head{display:flex;align-items:center;gap:11px;margin-bottom:20px}
+        .panel-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:rgba(255,102,0,.1);color:var(--primary-dark)}
+        .panel-head h3{margin:0;font-size:15px}.panel-head p{margin:3px 0 0;color:var(--text-muted);font-size:11px}
+        .generate-box{display:flex;flex-direction:column;gap:14px}
+        .generate-box select{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:var(--input-bg);color:var(--text);font-family:Poppins,sans-serif}
+        .generate-box .btn-primary{width:100%}
+        .receipt{border:1px solid var(--border);border-radius:13px;padding:22px;background:var(--bg)}
+        .receipt-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+        .receipt-top h3{margin:0;font-size:16px}.receipt-top span{font-size:11px;color:var(--text-muted)}
+        .receipt-row{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+        .receipt-row span:first-child{color:var(--text-muted)}.receipt-row span:last-child{font-weight:600;text-align:right}
+        .receipt-total{display:flex;justify-content:space-between;padding-top:18px;font-size:18px;font-weight:700;color:var(--primary-dark)}
+        .print-btn{margin-top:16px;width:100%}
+        .empty-panel{text-align:center;padding:55px 20px;color:var(--text-muted);font-size:13px}
+        @media(max-width:950px){.bill-grid{grid-template-columns:1fr}}
+        @media(max-width:900px){.main-content{padding:20px}.page-head{flex-direction:column;align-items:flex-start;gap:12px}}
+        @media print{
+        body *{visibility:hidden}.receipt,.receipt *{visibility:visible}
+        .receipt{position:absolute;left:0;top:0;width:100%;border:0;background:#fff;color:#111}
         }
     </style>
 </head>
-<script>
-    const staffMenuItem = document.getElementById('staffMenuItem');
 
-    if (staffMenuItem &&
-        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
-        staffMenuItem.style.display = 'none';
-    }
-</script>
 <body>
 
+<div class="mobile-topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">&#9776;</button>
+    <div class="brand">Sunrise Dental</div><div style="width:34px"></div>
+</div>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <div class="sidebar">
-
     <div class="brand">Sunrise Dental</div>
-
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
         <li><a href="manage_appointments.html">Search / Update</a></li>
         <li><a href="billing.html" class="active">Billing &amp; Receipt</a></li>
-        <li><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
-        <li id="staffMenuItem">
-            <a href="manage_staff.html">Manage Staff</a>
-        </li>
-        <li><a href="reports.html">Reports &amp; Analytics</a></li>
+        <li class="admin-only"><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
+        <li class="admin-only"><a href="manage_staff.html">Manage Staff</a></li>
+        <li class="admin-only"><a href="reports.html">Reports &amp; Analytics</a></li>
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
-
     <div class="theme-toggle">
         <span>Light</span>
-
-        <label class="switch">
-            <input type="checkbox" id="themeSwitch">
-            <span class="slider"></span>
-        </label>
-
+        <label class="switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
         <span>Dark</span>
     </div>
-
     <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
-
 </div>
-
 
 <div class="main-content">
 
-    <div class="header">
-        <div>
-            <h1>Billing &amp; Receipt</h1>
-            <p>Generate and print an appointment bill.</p>
-        </div>
+    <div class="page-head">
+        <div><h1>Billing &amp; Receipt</h1><p>Generate and print a patient appointment bill.</p></div>
+        <div class="page-badge"><span class="material-symbols-rounded" style="font-size:16px">receipt_long</span>Billing</div>
     </div>
 
+    <div class="bill-grid">
 
-    <div class="card-box">
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-icon"><span class="material-symbols-rounded">payments</span></div>
+                <div><h3>Generate Bill</h3><p>Select an active appointment.</p></div>
+            </div>
 
-        <div class="search-row">
-
-            <select id="appointmentSelect" style="width:100%;">
-                <option value="">Loading appointments...</option>
-            </select>
-
-            <button class="btn-primary" onclick="loadBill()">
-                Generate Bill
-            </button>
-
+            <div class="generate-box">
+                <select id="appointmentSelect"><option value="">Loading appointments...</option></select>
+                <button class="btn-primary" onclick="loadBill()">Generate Bill</button>
+            </div>
         </div>
 
-    </div>
+        <div class="panel" id="billCard" style="display:none">
+            <div class="receipt">
+                <div class="receipt-top">
+                    <div><h3>Sunrise Dental Clinic</h3><span>Patient Receipt</span></div>
+                    <span class="material-symbols-rounded">dentistry</span>
+                </div>
 
-
-    <div class="card-box" id="billCard" style="display:none;">
-
-        <div class="receipt">
-
-            <h3 style="margin-top:0;">
-                Sunrise Dental Clinic - Receipt
-            </h3>
-
-            <div class="receipt-row">
-                <span>Appointment No</span>
-                <span id="bAppointmentNo"></span>
+                <div class="receipt-row"><span>Appointment No</span><span id="bAppointmentNo"></span></div>
+                <div class="receipt-row"><span>Patient Name</span><span id="bPatientName"></span></div>
+                <div class="receipt-row"><span>Dentist</span><span id="bDentist"></span></div>
+                <div class="receipt-row"><span>Treatment</span><span id="bTreatment"></span></div>
+                <div class="receipt-row"><span>Generated Date</span><span id="bDate"></span></div>
+                <div class="receipt-total"><span>Total Amount</span><span id="bTotal"></span></div>
             </div>
 
-            <div class="receipt-row">
-                <span>Patient Name</span>
-                <span id="bPatientName"></span>
-            </div>
-
-            <div class="receipt-row">
-                <span>Dentist</span>
-                <span id="bDentist"></span>
-            </div>
-
-            <div class="receipt-row">
-                <span>Treatment</span>
-                <span id="bTreatment"></span>
-            </div>
-
-            <div class="receipt-row">
-                <span>Generated Date</span>
-                <span id="bDate"></span>
-            </div>
-
-            <div class="receipt-total">
-                <span>Total Amount</span>
-                <span id="bTotal"></span>
-            </div>
-
+            <button class="btn-primary print-btn" onclick="window.print()">Print Receipt</button>
         </div>
 
-        <button
-                class="btn-primary"
-                style="margin-top:20px;"
-                onclick="window.print()"
-        >
-            Print Receipt
-        </button>
+        <div class="panel empty-panel" id="emptyState">
+            Select an appointment to generate a bill.
+        </div>
 
     </div>
-
-
-    <div class="card-box empty-state" id="emptyState">
-        Select an appointment above to generate a bill.
-    </div>
-
 </div>
 
-
 <script>
+    const API='http://localhost:8080',$=id=>document.getElementById(id);
 
-    const API = 'http://localhost:8080';
+    document.addEventListener('DOMContentLoaded',()=>{
+        if((localStorage.getItem('role')||'').toUpperCase()!=='ADMIN')
+            document.querySelectorAll('.admin-only').forEach(x=>x.style.display='none');
+        loadAppointments();
+    });
 
-
-    document.addEventListener('DOMContentLoaded', loadAppointments);
-
-
-    async function loadAppointments() {
-
-        const select =
-            document.getElementById('appointmentSelect');
-
-        try {
-
-            const res =
-                await authFetch(`${API}/appointments`);
-
-            const appointments =
-                await res.json();
-
-            if (!res.ok)
-                throw new Error();
-
-
-            select.innerHTML =
-                '<option value="">Select appointment</option>';
-
-
-            appointments
-                .filter(a =>
-                    String(a.status).toUpperCase() !== 'CANCELLED'
-                )
-                .forEach(a => {
-
-                    const option =
-                        document.createElement('option');
-
-                    option.value =
-                        a.appointmentNo;
-
-                    option.textContent =
-                        `${a.appointmentNo} - ${a.patientName} - ${a.appointmentDate}`;
-
-                    select.appendChild(option);
-                });
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            select.innerHTML =
-                '<option value="">Unable to load appointments</option>';
-        }
+    async function loadAppointments(){
+        try{
+            const r=await authFetch(`${API}/appointments`),d=await r.json();
+            if(!r.ok)throw 0;
+            const a=d.filter(x=>String(x.status).toUpperCase()!=='CANCELLED');
+            $('appointmentSelect').innerHTML='<option value="">Select appointment</option>'+
+                a.map(x=>`<option value="${esc(x.appointmentNo)}">${esc(x.appointmentNo)} - ${esc(x.patientName)} - ${esc(x.appointmentDate)}</option>`).join('');
+        }catch{$('appointmentSelect').innerHTML='<option value="">Unable to load appointments</option>'}
     }
 
+    async function loadBill(){
+        const no=$('appointmentSelect').value;
+        if(!no)return alert('Please select an appointment.');
 
-    async function loadBill() {
+        try{
+            const r=await authFetch(`${API}/bills/${no}`),d=await r.json();
+            if(!r.ok)return showError(d.message||'Unable to generate bill.');
 
-        const appointmentNo =
-            document
-                .getElementById('appointmentSelect')
-                .value;
-
-
-        if (!appointmentNo) {
-
-            alert('Please select an appointment.');
-
-            return;
-        }
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/bills/${appointmentNo}`
-                );
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                showError(
-                    data.message ||
-                    'Unable to generate bill.'
-                );
-
-                return;
-            }
-
-
-            document
-                .getElementById('billCard')
-                .style.display =
-                'block';
-
-            document
-                .getElementById('emptyState')
-                .style.display =
-                'none';
-
-
-            document
-                .getElementById('bAppointmentNo')
-                .textContent =
-                data.appointmentNo || '';
-
-
-            document
-                .getElementById('bPatientName')
-                .textContent =
-                data.patientName || '';
-
-
-            document
-                .getElementById('bDentist')
-                .textContent =
-                data.dentistName || '';
-
-
-            document
-                .getElementById('bTreatment')
-                .textContent =
-                data.treatmentName || '';
-
-
-            document
-                .getElementById('bDate')
-                .textContent =
-                formatDate(data.generatedDate);
-
-
-            document
-                .getElementById('bTotal')
-                .textContent =
-                `Rs. ${Number(data.totalAmount || 0).toLocaleString(
-                    undefined,
-                    {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }
-                )}`;
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            showError(
-                'Unable to connect to the server.'
-            );
-        }
+            $('billCard').style.display='block';$('emptyState').style.display='none';
+            $('bAppointmentNo').textContent=d.appointmentNo||'';
+            $('bPatientName').textContent=d.patientName||'';
+            $('bDentist').textContent=d.dentistName||'';
+            $('bTreatment').textContent=d.treatmentName||'';
+            $('bDate').textContent=formatDate(d.generatedDate);
+            $('bTotal').textContent=`Rs. ${Number(d.totalAmount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+        }catch{showError('Unable to connect to the server.')}
     }
 
-
-    function showError(message) {
-
-        document
-            .getElementById('billCard')
-            .style.display =
-            'none';
-
-
-        const empty =
-            document.getElementById('emptyState');
-
-        empty.style.display =
-            'block';
-
-        empty.textContent =
-            message;
-    }
-
-
-    function formatDate(value) {
-
-        if (!value)
-            return '';
-
-        const date =
-            new Date(value);
-
-        return isNaN(date)
-            ? value
-            : date.toLocaleString();
-    }
-
+    function showError(t){$('billCard').style.display='none';$('emptyState').style.display='block';$('emptyState').textContent=t}
+    function formatDate(v){if(!v)return'';const d=new Date(v);return isNaN(d)?v:d.toLocaleString()}
+    function esc(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 </script>
-
 </body>
 </html>

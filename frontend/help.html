@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Help - Sunrise Dental</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,19 +10,47 @@
 
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
-</head>
-<script>
-    const staffMenuItem = document.getElementById('staffMenuItem');
 
-    if (staffMenuItem &&
-        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
-        staffMenuItem.style.display = 'none';
-    }
-</script>
+    <style>
+        html,body{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
+        .main-content{width:100%;min-width:0;padding:32px 38px}
+
+        .page-head{margin-bottom:25px}
+        .page-head h1{margin:0;font-size:27px}
+        .page-head p{margin:6px 0 0;color:var(--text-muted);font-size:14px}
+
+        .help-card{max-width:1000px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px 24px}
+        .help-item{border-bottom:1px solid var(--border)}
+        .help-item:last-child{border-bottom:0}
+
+        .help-question{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:19px 2px;cursor:pointer;font-size:14px;font-weight:600}
+        .help-question:hover{color:var(--primary-dark)}
+        .toggle{font-size:22px;color:var(--primary-dark);font-weight:400}
+
+        .help-answer{max-height:0;overflow:hidden;color:var(--text-muted);font-size:13.5px;line-height:1.8;transition:max-height .25s ease}
+        .help-item.open .help-answer{max-height:260px;padding:0 5px 18px}
+
+        .admin-tag{margin-left:7px;padding:3px 8px;border-radius:12px;background:rgba(255,102,0,.1);color:var(--primary-dark);font-size:10px}
+
+        @media(max-width:900px){
+            .main-content{padding:20px}
+            .help-card{padding:6px 18px}
+            .page-head h1{font-size:23px}
+        }
+    </style>
+</head>
+
 <body>
 
-<div class="sidebar">
+<div class="mobile-topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">&#9776;</button>
+    <div class="brand">Sunrise Dental</div>
+    <div style="width:34px"></div>
+</div>
 
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar">
     <div class="brand">Sunrise Dental</div>
 
     <ul class="sidebar-menu">
@@ -31,197 +58,178 @@
         <li><a href="register_appointment.html">Register Appointment</a></li>
         <li><a href="manage_appointments.html">Search / Update</a></li>
         <li><a href="billing.html">Billing &amp; Receipt</a></li>
-        <li><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
-        <li id="staffMenuItem">
-            <a href="manage_staff.html">Manage Staff</a>
-        </li>
-        <li><a href="reports.html">Reports &amp; Analytics</a></li>
+        <li class="admin-only"><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
+        <li class="admin-only"><a href="manage_staff.html">Manage Staff</a></li>
+        <li class="admin-only"><a href="reports.html">Reports &amp; Analytics</a></li>
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html" class="active">Help / Instructions</a></li>
     </ul>
 
     <div class="theme-toggle">
         <span>Light</span>
-
         <label class="switch">
             <input type="checkbox" id="themeSwitch">
             <span class="slider"></span>
         </label>
-
         <span>Dark</span>
     </div>
 
     <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
-
 </div>
-
 
 <div class="main-content">
 
-    <div class="header">
-        <div>
-            <h1>Help &amp; Instructions</h1>
-            <p>Step-by-step guidance for staff using the system.</p>
-        </div>
+    <div class="page-head">
+        <h1>Help &amp; Instructions</h1>
+        <p>Step-by-step guidance for using the Sunrise Dental Clinic system.</p>
     </div>
 
+    <div class="help-card">
 
-    <div class="card-box">
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
                 How do I register a new appointment?
-                <span class="icon">+</span>
+                <span class="toggle">+</span>
             </div>
-
-            <div class="accordion-body">
-                Go to "Register Appointment". Enter the patient name,
-                contact number and address, select a dentist and treatment,
-                then choose the appointment date and time.
-                Click "Register Appointment". The system automatically
-                generates a unique appointment number.
+            <div class="help-answer">
+                Open <b>Register Appointment</b>. Enter the patient's name, contact number and address.
+                Select a dentist and treatment, choose the date and time, then click
+                <b>Register Appointment</b>. A unique appointment number will be generated automatically.
             </div>
-
         </div>
 
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
-                How do I find or update an appointment?
-                <span class="icon">+</span>
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
+                How do I view or update an appointment?
+                <span class="toggle">+</span>
             </div>
-
-            <div class="accordion-body">
-                Go to "Search / Update" and select the required appointment
-                from the appointment dropdown. The appointment details will
-                load automatically. Patient details, date and time can then
-                be updated, or the appointment can be cancelled.
+            <div class="help-answer">
+                Open <b>Search / Update</b> and select an appointment from the dropdown.
+                Edit the patient details, date or time and click <b>Save Changes</b>.
             </div>
-
         </div>
 
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
+                How do I cancel an appointment?
+                <span class="toggle">+</span>
+            </div>
+            <div class="help-answer">
+                Select the appointment from <b>Search / Update</b> and click
+                <b>Cancel Appointment</b>. Cancelled appointments remain stored for record keeping.
+            </div>
+        </div>
 
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
                 How do I generate a bill?
-                <span class="icon">+</span>
+                <span class="toggle">+</span>
             </div>
-
-            <div class="accordion-body">
-                Go to "Billing & Receipt" and select an appointment from
-                the dropdown. Click "Generate Bill". The system calculates
-                the bill automatically and displays the receipt.
-                Click "Print Receipt" to print it.
+            <div class="help-answer">
+                Open <b>Billing &amp; Receipt</b>, select an appointment and click
+                <b>Generate Bill</b>. The receipt will appear automatically.
+                Click <b>Print Receipt</b> to print it.
             </div>
-
         </div>
 
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
-                How do I manage dentists and treatments? (Admin only)
-                <span class="icon">+</span>
-            </div>
-
-            <div class="accordion-body">
-                Go to "Manage Dentists". Administrators can add, edit or
-                delete dentists and treatments, and update consultation fees.
-            </div>
-
-        </div>
-
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
-                How do I view reports? (Admin only)
-                <span class="icon">+</span>
-            </div>
-
-            <div class="accordion-body">
-                Go to "Reports & Analytics". Select a From Date, To Date
-                and optionally a dentist. Click "Generate" to view total
-                appointments, total revenue, busiest dentist, most booked
-                treatment and the appointment breakdown.
-            </div>
-
-        </div>
-
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
                 How do I send an appointment reminder?
-                <span class="icon">+</span>
+                <span class="toggle">+</span>
             </div>
-
-            <div class="accordion-body">
-                Go to "Notifications". Select an appointment, choose SMS
-                or Email, review or edit the automatically generated reminder
-                message, and click "Send Notification". The notification is
-                simulated and stored in the notification log.
+            <div class="help-answer">
+                Open <b>Notifications</b>, select an appointment, choose SMS or Email,
+                check the reminder message and click <b>Send Notification</b>.
             </div>
-
         </div>
 
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
-                What happens if an appointment is cancelled?
-                <span class="icon">+</span>
+        <div class="help-item admin-help">
+            <div class="help-question" onclick="toggleItem(this)">
+                Manage dentists and treatments
+                <span>
+                    <small class="admin-tag">ADMIN</small>
+                    <span class="toggle">+</span>
+                </span>
             </div>
-
-            <div class="accordion-body">
-                Cancelled appointments remain in the system for record
-                keeping but cannot be edited. They are also excluded from
-                normal billing and report calculations.
+            <div class="help-answer">
+                Open <b>Manage Dentists</b> to add, edit or delete dentists,
+                treatments and consultation fees.
             </div>
-
         </div>
 
-
-        <div class="accordion-item">
-
-            <div class="accordion-header" onclick="toggleItem(this)">
-                What do I do if the system shows a connection error?
-                <span class="icon">+</span>
+        <div class="help-item admin-help">
+            <div class="help-question" onclick="toggleItem(this)">
+                Manage staff accounts
+                <span>
+                    <small class="admin-tag">ADMIN</small>
+                    <span class="toggle">+</span>
+                </span>
             </div>
-
-            <div class="accordion-body">
-                Confirm that the Java backend server is running and that
-                MySQL is started in XAMPP. Then refresh the page and try again.
+            <div class="help-answer">
+                Open <b>Manage Staff</b> to add staff accounts, change roles,
+                reset passwords and activate or deactivate accounts.
             </div>
+        </div>
 
+        <div class="help-item admin-help">
+            <div class="help-question" onclick="toggleItem(this)">
+                How do I view reports?
+                <span>
+                    <small class="admin-tag">ADMIN</small>
+                    <span class="toggle">+</span>
+                </span>
+            </div>
+            <div class="help-answer">
+                Open <b>Reports &amp; Analytics</b>. Select the date range and optionally a dentist,
+                then click <b>Generate Report</b> to view appointments, revenue and other clinic statistics.
+            </div>
+        </div>
+
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
+                What should I do if there is a connection error?
+                <span class="toggle">+</span>
+            </div>
+            <div class="help-answer">
+                Check that the Java backend server is running and MySQL is started in XAMPP.
+                Refresh the page and try again.
+            </div>
+        </div>
+
+        <div class="help-item">
+            <div class="help-question" onclick="toggleItem(this)">
+                How do I safely exit the system?
+                <span class="toggle">+</span>
+            </div>
+            <div class="help-answer">
+                Click <b>Log Out</b> at the bottom of the sidebar.
+                Your session will be closed and you will return to the login page.
+            </div>
         </div>
 
     </div>
-
 </div>
 
-
 <script>
+    document.addEventListener('DOMContentLoaded',()=>{
+        if((localStorage.getItem('role')||'').toUpperCase()!=='ADMIN')
+            document.querySelectorAll('.admin-only,.admin-help').forEach(x=>x.style.display='none');
+    });
 
-    function toggleItem(header) {
+    function toggleItem(header){
+        const item=header.parentElement,open=item.classList.contains('open');
 
-        const item =
-            header.parentElement;
+        document.querySelectorAll('.help-item.open').forEach(x=>{
+            x.classList.remove('open');
+            const icon=x.querySelector('.toggle');
+            if(icon)icon.textContent='+';
+        });
 
-        item.classList.toggle('open');
-
-        const icon =
-            header.querySelector('.icon');
-
-        icon.textContent =
-            item.classList.contains('open')
-                ? '−'
-                : '+';
+        if(!open){
+            item.classList.add('open');
+            header.querySelector('.toggle').textContent='−';
+        }
     }
-
 </script>
 
 </body>

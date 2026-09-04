@@ -2,430 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Reports & Analytics - Sunrise Dental</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
-</head>
-<script>
-    const staffMenuItem = document.getElementById('staffMenuItem');
 
-    if (staffMenuItem &&
-        String(localStorage.getItem('role')).toUpperCase() !== 'ADMIN') {
-        staffMenuItem.style.display = 'none';
-    }
-</script>
+    <style>
+        html,body{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
+        .main-content{width:100%;min-width:0;padding:32px 38px}
+        .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+        .page-head h1{margin:0;font-size:27px}.page-head p{margin:5px 0 0;color:var(--text-muted);font-size:13px}
+        .page-badge{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:20px;background:rgba(255,102,0,.1);color:var(--primary-dark);font-size:11px;font-weight:600}
+        .filter-card,.report-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:20px}
+        .filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end}
+        .filters .btn-primary{height:43px}
+        .report-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+        .report-stat{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:18px}
+        .report-stat h4{margin:0 0 9px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)}
+        .report-stat p{margin:0;color:var(--primary-dark);font-size:23px;font-weight:700}
+        .report-stat.text p{font-size:14px}
+        .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        .card-head h3{margin:0;font-size:15px}.card-head p{margin:3px 0 0;color:var(--text-muted);font-size:11px}
+        .table-wrap{overflow-x:auto}.report-table{min-width:760px}
+        @media(max-width:1050px){.filters{grid-template-columns:1fr 1fr}.report-stats{grid-template-columns:1fr 1fr}}
+        @media(max-width:900px){.main-content{padding:20px}.page-head{flex-direction:column;align-items:flex-start;gap:12px}}
+        @media(max-width:600px){.filters,.report-stats{grid-template-columns:1fr}.filters .btn-primary{width:100%}}
+    </style>
+</head>
+
 <body>
 
+<div class="mobile-topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">&#9776;</button>
+    <div class="brand">Sunrise Dental</div><div style="width:34px"></div>
+</div>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <div class="sidebar">
-
     <div class="brand">Sunrise Dental</div>
-
     <ul class="sidebar-menu">
         <li><a href="dashboard.html">Dashboard / Home</a></li>
         <li><a href="register_appointment.html">Register Appointment</a></li>
         <li><a href="manage_appointments.html">Search / Update</a></li>
         <li><a href="billing.html">Billing &amp; Receipt</a></li>
         <li><a href="manage_dentists_treatments.html">Manage Dentists</a></li>
-        <li id="staffMenuItem">
-            <a href="manage_staff.html">Manage Staff</a>
-        </li>
+        <li><a href="manage_staff.html">Manage Staff</a></li>
         <li><a href="reports.html" class="active">Reports &amp; Analytics</a></li>
         <li><a href="notifications.html">Notifications</a></li>
         <li><a href="help.html">Help / Instructions</a></li>
     </ul>
-
     <div class="theme-toggle">
         <span>Light</span>
-
-        <label class="switch">
-            <input type="checkbox" id="themeSwitch">
-            <span class="slider"></span>
-        </label>
-
+        <label class="switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
         <span>Dark</span>
     </div>
-
     <a href="#" class="logout-btn" onclick="logout()">Log Out</a>
-
 </div>
-
 
 <div class="main-content">
 
-    <div class="header">
-        <div>
-            <h1>Reports &amp; Analytics</h1>
-            <p>Admin only - decision-making data for the clinic.</p>
+    <div class="page-head">
+        <div><h1>Reports &amp; Analytics</h1><p>Review clinic activity and financial performance.</p></div>
+        <div class="page-badge"><span class="material-symbols-rounded" style="font-size:16px">analytics</span>Admin Access</div>
+    </div>
+
+    <div class="filter-card">
+        <div class="filters">
+            <div class="form-group"><label>From Date</label><input type="date" id="fromDate"></div>
+            <div class="form-group"><label>To Date</label><input type="date" id="toDate"></div>
+            <div class="form-group"><label>Dentist</label><select id="dentistFilter"><option value="">Loading dentists...</option></select></div>
+            <button class="btn-primary" onclick="loadReport()">Generate Report</button>
         </div>
     </div>
 
-
-    <div class="card-box">
-
-        <div class="form-grid"
-             style="grid-template-columns:1fr 1fr 1fr auto; align-items:end;">
-
-            <div class="form-group">
-                <label>From Date</label>
-                <input type="date" id="fromDate">
-            </div>
-
-            <div class="form-group">
-                <label>To Date</label>
-                <input type="date" id="toDate">
-            </div>
-
-            <div class="form-group">
-                <label>Dentist</label>
-
-                <select id="dentistFilter">
-                    <option value="">Loading dentists...</option>
-                </select>
-            </div>
-
-            <button class="btn-primary" onclick="loadReport()">
-                Generate
-            </button>
-
-        </div>
-
+    <div class="report-stats">
+        <div class="report-stat"><h4>Total Appointments</h4><p id="sTotalAppointments">-</p></div>
+        <div class="report-stat"><h4>Total Revenue</h4><p id="sTotalRevenue">-</p></div>
+        <div class="report-stat text"><h4>Busiest Dentist</h4><p id="sBusiestDentist">-</p></div>
+        <div class="report-stat text"><h4>Most Booked Treatment</h4><p id="sTopTreatment">-</p></div>
     </div>
 
-
-    <div class="summary-grid">
-
-        <div class="summary-card">
-            <h4>Total Appointments</h4>
-            <p id="sTotalAppointments">-</p>
+    <div class="report-card">
+        <div class="card-head">
+            <div><h3>Appointment Breakdown</h3><p>Detailed results for the selected period.</p></div>
         </div>
 
-        <div class="summary-card">
-            <h4>Total Revenue</h4>
-            <p id="sTotalRevenue">-</p>
+        <div class="table-wrap">
+            <table class="report-table">
+                <thead><tr><th>Date</th><th>Dentist</th><th>Treatment</th><th>Appointments</th><th>Revenue</th></tr></thead>
+                <tbody id="reportRows"><tr><td colspan="5" class="empty-state">Generate a report to view data.</td></tr></tbody>
+            </table>
         </div>
-
-        <div class="summary-card">
-            <h4>Busiest Dentist</h4>
-            <p id="sBusiestDentist" style="font-size:16px;">-</p>
-        </div>
-
-        <div class="summary-card">
-            <h4>Most Booked Treatment</h4>
-            <p id="sTopTreatment" style="font-size:16px;">-</p>
-        </div>
-
-    </div>
-
-
-    <div class="card-box">
-
-        <h3>Appointment Breakdown</h3>
-
-        <table>
-
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Dentist</th>
-                <th>Treatment</th>
-                <th>Appointments</th>
-                <th>Revenue</th>
-            </tr>
-            </thead>
-
-            <tbody id="reportRows">
-
-            <tr>
-                <td colspan="5" class="empty-state">
-                    Click "Generate" to load the report.
-                </td>
-            </tr>
-
-            </tbody>
-
-        </table>
-
     </div>
 
 </div>
 
-
 <script>
+    const API='http://localhost:8080',$=id=>document.getElementById(id);
 
-    const API = 'http://localhost:8080';
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-
-        if (
-            String(localStorage.getItem('role')).toUpperCase()
-            !== 'ADMIN'
-        ) {
-            alert('Admin access only.');
-            location.href = 'dashboard.html';
-            return;
-        }
-
-        loadDentists();
-        setDefaultDates();
+    document.addEventListener('DOMContentLoaded',()=>{
+        if((localStorage.getItem('role')||'').toUpperCase()!=='ADMIN'){location.href='dashboard.html';return}
+        setDefaultDates();loadDentists();
     });
 
+    function setDefaultDates(){
+        const t=new Date(),f=new Date(t.getFullYear(),t.getMonth(),1);
+        $('fromDate').value=dateInput(f);$('toDate').value=dateInput(t);
+    }
+    function dateInput(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 
-    function setDefaultDates() {
-
-        const today = new Date();
-
-        const firstDay =
-            new Date(
-                today.getFullYear(),
-                today.getMonth(),
-                1
-            );
-
-        document.getElementById('fromDate').value =
-            formatInputDate(firstDay);
-
-        document.getElementById('toDate').value =
-            formatInputDate(today);
+    async function loadDentists(){
+        try{
+            const r=await authFetch(`${API}/dentists`),d=await r.json();
+            if(!r.ok)throw 0;
+            $('dentistFilter').innerHTML='<option value="">All dentists</option>'+
+                d.map(x=>`<option value="${x.dentistId}">${esc(x.name)}</option>`).join('');
+        }catch{$('dentistFilter').innerHTML='<option value="">Unable to load dentists</option>'}
     }
 
+    async function loadReport(){
+        const from=$('fromDate').value,to=$('toDate').value,id=$('dentistFilter').value;
+        if(!from||!to)return alert('Please select both dates.');
+        if(from>to)return alert('From Date cannot be after To Date.');
 
-    function formatInputDate(date) {
+        const p=new URLSearchParams({from,to});if(id)p.set('dentistId',id);
 
-        const year = date.getFullYear();
+        try{
+            const r=await authFetch(`${API}/reports?${p}`),d=await r.json();
+            if(!r.ok)throw new Error(d.message||'Unable to generate report.');
 
-        const month =
-            String(date.getMonth() + 1)
-                .padStart(2, '0');
+            $('sTotalAppointments').textContent=d.totalAppointments??0;
+            $('sTotalRevenue').textContent=`Rs. ${money(d.totalRevenue)}`;
+            $('sBusiestDentist').textContent=d.busiestDentist||'N/A';
+            $('sTopTreatment').textContent=d.topTreatment||'N/A';
 
-        const day =
-            String(date.getDate())
-                .padStart(2, '0');
-
-        return `${year}-${month}-${day}`;
-    }
-
-
-    async function loadDentists() {
-
-        const select =
-            document.getElementById('dentistFilter');
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/dentists`
-                );
-
-            const dentists =
-                await res.json();
-
-            if (!res.ok)
-                throw new Error();
-
-
-            select.innerHTML =
-                '<option value="">All dentists</option>';
-
-
-            dentists.forEach(d => {
-
-                const option =
-                    document.createElement('option');
-
-                option.value =
-                    d.dentistId;
-
-                option.textContent =
-                    d.name;
-
-                select.appendChild(option);
-            });
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            select.innerHTML =
-                '<option value="">Unable to load dentists</option>';
+            $('reportRows').innerHTML=(d.breakdown||[]).length
+                ?d.breakdown.map(x=>`<tr>
+                    <td>${esc(x.date)}</td><td>${esc(x.dentist)}</td><td>${esc(x.treatment)}</td>
+                    <td>${x.count}</td><td>Rs. ${money(x.revenue)}</td>
+                </tr>`).join('')
+                :'<tr><td colspan="5" class="empty-state">No data for this range.</td></tr>';
+        }catch(e){
+            $('reportRows').innerHTML=`<tr><td colspan="5" class="empty-state">${esc(e.message)}</td></tr>`;
         }
     }
 
-
-    async function loadReport() {
-
-        const from =
-            document.getElementById('fromDate').value;
-
-        const to =
-            document.getElementById('toDate').value;
-
-        const dentistId =
-            document.getElementById('dentistFilter').value;
-
-
-        if (!from || !to) {
-
-            alert(
-                'Please select both From Date and To Date.'
-            );
-
-            return;
-        }
-
-
-        if (from > to) {
-
-            alert(
-                'From Date cannot be after To Date.'
-            );
-
-            return;
-        }
-
-
-        const params =
-            new URLSearchParams({
-                from,
-                to
-            });
-
-
-        if (dentistId) {
-
-            params.set(
-                'dentistId',
-                dentistId
-            );
-        }
-
-
-        try {
-
-            const res =
-                await authFetch(
-                    `${API}/reports?${params.toString()}`
-                );
-
-
-            const data =
-                await res.json();
-
-
-            if (!res.ok) {
-
-                throw new Error(
-                    data.message ||
-                    'Unable to generate report.'
-                );
-            }
-
-
-            document
-                .getElementById('sTotalAppointments')
-                .textContent =
-                data.totalAppointments ?? 0;
-
-
-            document
-                .getElementById('sTotalRevenue')
-                .textContent =
-                `Rs. ${Number(
-                    data.totalRevenue || 0
-                ).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                })}`;
-
-
-            document
-                .getElementById('sBusiestDentist')
-                .textContent =
-                data.busiestDentist || 'N/A';
-
-
-            document
-                .getElementById('sTopTreatment')
-                .textContent =
-                data.topTreatment || 'N/A';
-
-
-            const rows =
-                (data.breakdown || [])
-                    .map(r => `
-
-                        <tr>
-
-                            <td>
-                                ${escapeHtml(r.date)}
-                            </td>
-
-                            <td>
-                                ${escapeHtml(r.dentist)}
-                            </td>
-
-                            <td>
-                                ${escapeHtml(r.treatment)}
-                            </td>
-
-                            <td>
-                                ${r.count}
-                            </td>
-
-                            <td>
-                                Rs. ${Number(r.revenue || 0)
-                                    .toLocaleString(undefined, {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })}
-                            </td>
-
-                        </tr>
-
-                    `).join('');
-
-
-            document
-                .getElementById('reportRows')
-                .innerHTML =
-                rows ||
-                '<tr><td colspan="5" class="empty-state">No data for this range.</td></tr>';
-
-
-        } catch (e) {
-
-            console.error(e);
-
-            document
-                .getElementById('reportRows')
-                .innerHTML =
-                `<tr>
-                    <td colspan="5" class="empty-state">
-                        ${escapeHtml(e.message)}
-                    </td>
-                </tr>`;
-        }
-    }
-
-
-    function escapeHtml(value) {
-
-        return String(value || '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;');
-    }
-
+    function money(v){return Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+    function esc(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 </script>
-
 </body>
 </html>
