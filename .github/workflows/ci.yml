@@ -1,0 +1,34 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify project files
+        run: |
+          echo "Checking project structure..."
+          find . -maxdepth 3 -type f | head -100
+
+      - name: Compile Java source files
+        run: |
+          mkdir -p out
+          find backend/src -name "*.java" > sources.txt
+          javac -d out @sources.txt
