@@ -21,13 +21,17 @@ public class AppointmentService {
 
         validateAppointment(appointment);
 
+        validateAppointmentDateTime(
+                appointment.getAppointmentDate(),
+                appointment.getAppointmentTime()
+        );
+
         return appointmentDAO.register(
                 appointment
         );
     }
 
 
-    // NEW
     public List<Appointment> getAll()
             throws SQLException {
 
@@ -69,6 +73,11 @@ public class AppointmentService {
         validatePatientDetails(appointment);
         validateDate(appointment.getAppointmentDate());
         validateTime(appointment.getAppointmentTime());
+
+        validateAppointmentDateTime(
+                appointment.getAppointmentDate(),
+                appointment.getAppointmentTime()
+        );
 
         return appointmentDAO.update(
                 appointmentNo.trim(),
@@ -211,5 +220,69 @@ public class AppointmentService {
                     "Invalid appointment time."
             );
         }
+    }
+
+
+    void validateAppointmentDateTime(
+            String dateString,
+            String timeString
+    ) throws SQLException {
+
+        LocalDate date =
+                parseAppointmentDate(dateString);
+
+        LocalTime time =
+                parseAppointmentTime(timeString);
+
+        if (isPastAppointmentTime(date, time)) {
+
+            throw new SQLException(
+                    "Appointment time cannot be in the past."
+            );
+        }
+    }
+
+
+    private LocalDate parseAppointmentDate(
+            String dateString
+    ) throws SQLException {
+
+        try {
+
+            return LocalDate.parse(dateString);
+
+        } catch (DateTimeParseException e) {
+
+            throw new SQLException(
+                    "Invalid appointment date or time format."
+            );
+        }
+    }
+
+
+    private LocalTime parseAppointmentTime(
+            String timeString
+    ) throws SQLException {
+
+        try {
+
+            return LocalTime.parse(timeString);
+
+        } catch (DateTimeParseException e) {
+
+            throw new SQLException(
+                    "Invalid appointment date or time format."
+            );
+        }
+    }
+
+
+    private boolean isPastAppointmentTime(
+            LocalDate date,
+            LocalTime time
+    ) {
+
+        return date.isEqual(LocalDate.now())
+                && time.isBefore(LocalTime.now());
     }
 }
